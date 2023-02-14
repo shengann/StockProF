@@ -1,5 +1,6 @@
 from django.db import models
 import datetime
+from decimal import Decimal
 
 # Create your models here.
 class stock (models.Model):
@@ -15,18 +16,24 @@ class stock (models.Model):
     Address = models.CharField(max_length=220,null=True, blank=True)
     
     def __str__(self):
-        return str(self.Symbol) + "  " + str(self.Name)
+        return self.Symbol
     
 class financialRatios (models.Model):
     ticker = models.ForeignKey(
         stock, on_delete=models.CASCADE, related_name='financialRatios', to_field='Symbol', null=True, blank=True)
     # ticket = models.CharField(max_length=20)
-    assetturnover = models.DecimalField(max_digits=6, decimal_places=4)
-    quickratio = models.DecimalField(max_digits=6, decimal_places=4)
-    debttoequity = models.DecimalField(max_digits=6, decimal_places=4)
-    roe = models.DecimalField(max_digits=6, decimal_places=4)
-    dividendyield = models.DecimalField(max_digits=6, decimal_places=4)
-    pricetoearnings = models.DecimalField(max_digits=6, decimal_places=4)
+    assetturnover = models.DecimalField(
+        max_digits=6, decimal_places=4, min_value=Decimal('-9999999999.99'))
+    quickratio = models.DecimalField(
+        max_digits=6, decimal_places=4, min_value=Decimal('-9999999999.99'))
+    debttoequity = models.DecimalField(
+        max_digits=6, decimal_places=4, min_value=Decimal('-9999999999.99'))
+    roe = models.DecimalField(
+        max_digits=6, decimal_places=4, min_value=Decimal('-9999999999.99'))
+    dividendyield = models.DecimalField(
+        max_digits=6, decimal_places=4, min_value=Decimal('-9999999999.99'))
+    pricetoearnings = models.DecimalField(
+        max_digits=6, decimal_places=4, min_value=Decimal('-9999999999.99'))
     date = models.DateField()
 
     def __str__(self):
