@@ -40,7 +40,7 @@ INSTALLED_APPS = [
     'StockProf_app',
     'rest_framework',
     'rest_framework.authtoken',
-    'corsheader',
+    'corsheaders',
     'djoser'
 
 ]
