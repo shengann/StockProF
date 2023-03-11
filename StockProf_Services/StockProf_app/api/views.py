@@ -18,52 +18,13 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.neighbors import LocalOutlierFactor
 from sklearn.mixture import BayesianGaussianMixture
 
+
+class stockList(APIView):
+    def get(self, request, format=None):
+        stocks = stock.objects.all()
+        serializer = stockSerializer(stocks, many=True)
+        return Response(serializer.data)
 class getFinancialRatosData(views.APIView):
-    # queryset = financialRatios.objects.all()
-    # serializer_class = finacialRatiosSerializer
-
-    # def get(self, request, *args, **kwargs):
-    #     Symbol = self.kwargs['Symbol']
-    #     print(Symbol)
-    #     stockList = []
-    #     tags = ['assetturnover', 'quickratio', 'debttoequity', 'roe', 'pricetoearnings', 'dividendyield']
-    #     ticker = Symbol
-    #     for x in tags:
-    #         url = "https://www.discoverci.com/charts/anychart_data?tag={tag}&ticker={ticker}&type=QTR"
-    #         tag = x
-    #         url = url.format(tag=tag, ticker=ticker)
-    #         print("url",url)
-    #         response = requests.get(url)
-    #         data = response.json()
-
-    #         # Create a Pandas DataFrame from the data
-    #         x = pd.DataFrame(data, columns=['date', x])
-    #         x["date"] = pd.DatetimeIndex(x["date"])
-            
-    #         x['date'] = pd.PeriodIndex(x.date, freq='Q')
-    #         print(x)
-    #         stockList.append(x)
-    #     print(stockList)
-    #     df_outer = stockList[0].merge(stockList[1], on='date', how='outer').merge(stockList[2], on='date', how='outer').merge(stockList[3], on='date', how='outer').merge(stockList[4], on='date', how='outer').merge(stockList[5], on='date', how='outer')
-    #     # df_outer = df_outer.round(4)
-    #     df_outer['ticker'] = ticker
-    #     # df_outer['date'] = pd.to_datetime(df_outer['date'] + '-01')
-    #     # df_outer['date'] = df_outer['date'].dt.strftime('%Y-%m-%d')
-    #     print(df_outer)
-    #     df_outer['date'] = df_outer['date'].apply(lambda x: x.strftime('%Y-%m-%d'))
-
-
-    #     # df_outer['date'] = pd.PeriodIndex(df_outer, freq='Q').to_timestamp()
-    #     # df_outer = df_outer.to_frame()
-    #     df_outer[['pricetoearnings']] = df_outer[['pricetoearnings']].fillna(value=0)
-    #     print(df_outer)
-    #     df_outer = df_outer.dropna()
-    #     print("df_outer_1", df_outer)
-    #     for i, row in df_outer.iterrows():
-    #         stockTicker = stock.objects.get(Symbol=ticker)
-    #         financialRatios.objects.create(ticker=stockTicker,date=row['date'], assetturnover=row['assetturnover'], quickratio=row['quickratio'], roe=row['roe'], pricetoearnings=row['pricetoearnings'], dividendyield=row['dividendyield'], debttoequity=row['debttoequity'])
-    #     return Response((stockSerializer(stock.objects.get(Symbol=Symbol))).data)
-    
     def post(self, request, *args, **kwargs):
         ticker_list = request.data.get('ticker_list')
         for Symbol in ticker_list:
