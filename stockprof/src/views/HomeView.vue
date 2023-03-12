@@ -1,11 +1,13 @@
 <template>
   <div class="home">
-  <div
-    v-for="stock in stocks"
-    v-bind:key="stock.id"
-  >
-    <div class="is-size-4">{{stock.Symbol}}</div>
-
+  <div class="box">
+    <div
+      v-for="stock in stocks"
+      v-bind:key="stock.id"
+    >
+      <div class="is-size-4">{{stock.Symbol}} {{ stock.Sector }}</div>
+      <router-link v-bind:to="stock.get_absolute_url" class="button is-dark mt-4">View details</router-link>
+    </div>
   </div>
   </div>
 </template>
@@ -27,7 +29,7 @@ export default {
   methods: {
     async getStocks() {
       await axios
-        .get('/stockprof/stocks')
+        .get('api/stocks')
         .then(response => {
           this.stocks = response.data,
             console.log("this.stocks", this.stocks)
