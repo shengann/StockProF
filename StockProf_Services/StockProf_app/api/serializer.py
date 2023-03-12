@@ -12,5 +12,13 @@ class stockSerializer(serializers.ModelSerializer):
     # financialRatios = finacialRatiosSerializer(many=True)
     class Meta:
         model = stock
-        fields = '__all__'
+        fields = (
+            "id",
+            "Symbol",
+            "Name",
+            "get_absolute_url",
+            "Exchange",
+            "Sector",
+            "Industry",
+        )
         

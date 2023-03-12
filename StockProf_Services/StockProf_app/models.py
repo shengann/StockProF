@@ -4,18 +4,16 @@ import datetime
 # Create your models here.
 class stock (models.Model):
     Symbol = models.CharField(max_length=50,unique=True)
-    AssetType = models.CharField(max_length=20,blank=True)
     Name = models.CharField(max_length=220, blank=True)
-    CIK = models.CharField(max_length=20, null=True, blank=True)
     Exchange = models.CharField(max_length=20, blank=True)
-    Currency = models.CharField(max_length=20, blank=True)
-    Country = models.CharField(max_length=20, blank=True)
     Sector = models.CharField(max_length=20)
     Industry = models.CharField(max_length=220, blank=True)
-    Address = models.CharField(max_length=220,null=True, blank=True)
     
     def __str__(self):
         return str(self.Symbol) + "  " + str(self.Name)
+    
+    def get_absolute_url(self):
+        return f'/{self.Symbol}'
     
 class financialRatios (models.Model):
     ticker = models.ForeignKey(
