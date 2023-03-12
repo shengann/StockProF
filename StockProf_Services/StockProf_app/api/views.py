@@ -14,7 +14,13 @@ from sklearn.mixture import BayesianGaussianMixture
 from django.http import Http404
 
 
-
+class filterStock(APIView):
+    def get(self, request, *args, **kwargs):
+        sector = self.kwargs['sector']
+        stocks = stock.objects.filter(Sector=sector)
+        serializer = stockSerializer(stocks, many=True)
+        return Response(serializer.data)
+    
 class stockList(APIView):
     def get(self, request, format=None):
         stocks = stock.objects.all()
