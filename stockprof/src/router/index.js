@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import StockDetail from '../views/StockDetail.vue'
+import Portfolio from '../views/Portfolio.vue'
 
 const routes = [
   {
@@ -12,6 +13,12 @@ const routes = [
     path: '/:ticker',
     name: 'StockDetail',
     component: StockDetail
+  },
+  {
+    path: '/portfolio',
+    name: 'Portfolio',
+    component: Portfolio,
+    props: route => ({ message: route.params.message })
   }
 ]
 
