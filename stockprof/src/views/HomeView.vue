@@ -15,6 +15,7 @@
         </li>
       </ul>
     </div>
+    <button to="portfolio" @click="navigateToPortfolio" type="button"  class="btn btn-primary">Generate Portfolio</button> 
 
     <div class="box">
       <div
@@ -35,7 +36,8 @@ export default {
   data() {
     return {
       stocks: [],
-      options: ['Healthcare', 'Technology'],
+      selectedStocks: [],
+      options: new Set([""]),
       value: ''
     }
   },
@@ -53,7 +55,9 @@ export default {
             console.log(response.data)
             const symbols = response.data.map(symbol => symbol.Symbol);
             console.log(symbols)
-            // console.log("this.stocks", this.stocks)
+            this.selectedStocks = symbols
+            const sectors = response.data.map(sector => sector.Sector);
+            sectors.forEach(sector => this.options.add(sector));
         })
         .catch(error => {
           console.log(error)
@@ -71,7 +75,17 @@ export default {
           console.log(error)
         }
         )
-    }
+    },
+    async navigateToPortfolio(){
+      console.log("navigateToPortfolio",this.selectedStocks)
+      this.$router.push({
+        name: 'Portfolio',
+        query: {
+          selectedStocks : this.selectedStocks
+        }
+      })
+    },
+
   }
 }
 </script>
