@@ -35,7 +35,7 @@ export default {
   data() {
     return {
       stocks: [],
-      options: ['Healthcare', 'Technology'],
+      options: new Set([""]),
       value: ''
     }
   },
@@ -53,7 +53,8 @@ export default {
             console.log(response.data)
             const symbols = response.data.map(symbol => symbol.Symbol);
             console.log(symbols)
-            // console.log("this.stocks", this.stocks)
+            const sectors = response.data.map(sector => sector.Sector);
+            sectors.forEach(sector => this.options.add(sector));
         })
         .catch(error => {
           console.log(error)
