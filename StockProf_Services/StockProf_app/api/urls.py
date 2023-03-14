@@ -9,7 +9,6 @@ urlpatterns = [
     path('stock/<slug:ticker>',getStockData.as_view(), name='get-Stock-Data'),
     path('stock/financial_ratio',
          getFinancialRatosData.as_view(), name='getFinancialRatosData'),
-    path('LOF', getStockProfData.as_view(), name='getStockProfData'),
-    path('industry/<str:sector>', getIndustryTicker.as_view(),name='getIndustryTicker')
-
+    path('stockprof', getStockProfData.as_view(), name='getStockProfData'),
+    path('industry/<str:sector>', getIndustryTicker.as_view(),name='getIndustryTicker'),
 ]

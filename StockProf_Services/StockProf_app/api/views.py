@@ -11,7 +11,7 @@ from django.utils import timezone
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.neighbors import LocalOutlierFactor
 from sklearn.mixture import BayesianGaussianMixture
-from django.http import Http404
+from django.http import HttpResponse, HttpResponseNotFound
 
 
 class filterStock(APIView):
@@ -98,33 +98,63 @@ class getStockProfData(views.APIView):
         stockTicker = stock.objects.filter(Symbol__in=ticker_list)
         date = timezone.datetime.strptime(date_data, '%Y-%m-%d').date()
         data = financialRatios.objects.filter(ticker__in=stockTicker, date__exact=date)
-        print(((finacialRatiosSerializer(data, many=True)).data))
+        
         data_frame = pd.DataFrame((finacialRatiosSerializer(data, many=True)).data)
+        pd.set_option('display.max_rows', None)
+        print("data_frame\n", data_frame)
         data_frame=data_frame.drop(columns=['date','id'])
         
         scaler = MinMaxScaler()
         columns = ['assetturnover', 'quickratio', 'debttoequity','roe', 'dividendyield', 'pricetoearnings']
-        df_norm = pd.DataFrame(scaler.fit_transform(
-            data_frame[columns]))
+        df_norm = pd.DataFrame(scaler.fit_transform(data_frame[columns]))
         df_norm.set_axis(columns, axis=1, inplace=True)
         data_frame= data_frame['ticker']
         data_frame = pd.concat([df_norm, data_frame], axis=1)
+        pd.set_option('display.max_rows', None)
         print("data_frame\n", data_frame)
         
         lof = LocalOutlierFactor()
         lof.fit(data_frame[columns])
         lof_scores = -lof.negative_outlier_factor_
         data_frame['lof_score'] = lof_scores
-        print("data_frame\n", data_frame)
+        data_frame.drop(data_frame[data_frame["lof_score"] > 1.5].index, inplace=True)
+        data_frame = data_frame.reset_index(drop=True)
+        pd.set_option('display.max_rows', None)
+        print("data_frame_lof\n", data_frame)
 
-        data_frame = data_frame.drop(columns=['lof_score','ticker'])
+        data_frame_clustering = data_frame.drop(columns=['lof_score','ticker'])
         em_clustering = BayesianGaussianMixture(n_components=3)
-        print("data_frame\n", data_frame)
-        em_clustering.fit(data_frame)
-        labels = em_clustering.predict(data_frame)
+        em_clustering.fit(data_frame_clustering)
+        labels = em_clustering.predict(data_frame_clustering)
         print("labels", labels)
+        data_frame['label'] = labels
+        data_frame = data_frame.drop(columns=['assetturnover', 'quickratio', 'debttoequity', 'roe', 'dividendyield', 'pricetoearnings', 'lof_score'])
+        pd.set_option('display.max_rows', None)
+        print("data_frame_clustering\n", data_frame)
         
-        return (Response((finacialRatiosSerializer(data,many=True)).data))
+        groups = data_frame.groupby('label')
+        lists = []
+
+
+        for name, group in groups:
+            lists.append(group['ticker'].tolist())
+
+        # Print the list of lists
+        print(lists)
+        clusteringList=[]
+        for ticker_list in lists:
+            print("\n",ticker_list)
+            clusteredStocks = stock.objects.filter(Symbol__in=ticker_list) 
+            serializer = stockSerializer(clusteredStocks, many=True)
+            clusteringList.append(serializer.data)
+        
+        print("clusteringList", clusteringList)
+        content = {
+            'status': 1,
+            'data': clusteringList,
+
+        }
+        return Response(content)
     
 
 class getIndustryTicker(views.APIView):
