@@ -53,9 +53,6 @@ export default {
         .then(response => {
           this.stocks = response.data,
             console.log(response.data)
-            const symbols = response.data.map(symbol => symbol.Symbol);
-            console.log(symbols)
-            this.selectedStocks = symbols
             const sectors = response.data.map(sector => sector.Sector);
             sectors.forEach(sector => this.options.add(sector));
         })
@@ -70,6 +67,8 @@ export default {
         .then(response => {
           this.stocks = response.data,
             console.log("this.stocks", this.stocks)
+            const symbols = response.data.map(symbol => symbol.Symbol);
+            this.selectedStocks = symbols
         })
         .catch(error => {
           console.log(error)
