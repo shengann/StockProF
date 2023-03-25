@@ -21,6 +21,13 @@ class filterStock(APIView):
         serializer = stockSerializer(stocks, many=True)
         return Response(serializer.data)
     
+    def delete(self, request, *args, **kwargs):
+        sector = self.kwargs['sector']
+        stocks = stock.objects.filter(Sector=sector)
+        stocks.delete()
+        return None
+
+    
 class stockList(APIView):
     def get(self, request, format=None):
         stocks = stock.objects.all()
@@ -77,11 +84,14 @@ class getStockData(views.APIView):
         
     def post(self, request, *args, **kwargs):
         ticker_list = request.data.get('ticker_list')
+        name_list = request.data.get('name_list')
+        industry_list = request.data.get('industry_list')
         sector = request.data.get('sector')
-        for Symbol in ticker_list:
+        for Symbol, Name, Industry in zip(ticker_list, name_list, industry_list):
             print(Symbol)
             print(sector)
-            stock.objects.create( Symbol=Symbol,Sector =sector)
+            stock.objects.create(Symbol=Symbol, Sector=sector,
+                                 Name=Name, Industry=Industry)
         return None
         
 
@@ -162,13 +172,20 @@ class getIndustryTicker(views.APIView):
         sector = self.kwargs['sector']
         url = "https://financialmodelingprep.com/api/v3/stock-screener?marketCapMoreThan=2000000000&isEtf=false&isActivelyTrading=True&sector={sector}&exchange=NASDAQ&limit=500&apikey=ae939e4358f7c5e3f91ed3594ba67d1b"
         url = url.format(sector=sector)
-        response = requests.get(url)
-        # sector_data = [{'symbol': 'AAPL', 'companyName': 'Apple Inc.', 'marketCap': 2321230916137, 'sector': 'Technology', 'industry': 'Consumer Electronics', 'beta': 1.277894, 'price': 146.71, 'lastAnnualDividend': 0.91, 'volume': 55344942, 'exchange': 'NASDAQ Global Select', 'exchangeShortName': 'NASDAQ', 'country': 'US', 'isEtf': False, 'isActivelyTrading': True}, {'symbol': 'MSFT', 'companyName': 'Microsoft Corporation', 'marketCap': 1855143851950, 'sector': 'Technology', 'industry': 'Software—Infrastructure', 'beta': 0.91562, 'price': 249.22, 'lastAnnualDividend': 2.54, 'volume': 24990905, 'exchange': 'NASDAQ Global Select', 'exchangeShortName': 'NASDAQ', 'country': 'US', 'isEtf': False, 'isActivelyTrading': True}, {'symbol': 'NVDA', 'companyName': 'NVIDIA Corporation', 'marketCap': 580287120000, 'sector': 'Technology', 'industry': 'Semiconductors', 'beta': 1.790446, 'price': 232.86, 'lastAnnualDividend': 0.16, 'volume': 58971591, 'exchange': 'NASDAQ Global Select', 'exchangeShortName': 'NASDAQ', 'country': 'US', 'isEtf': False, 'isActivelyTrading': True}, {'symbol': 'ASML', 'companyName': 'ASML Holding N.V.', 'marketCap': 244006574094, 'sector': 'Technology', 'industry': 'Semiconductor Equipment & Materials', 'beta': 1.232504, 'price': 618.38, 'lastAnnualDividend': 5.639, 'volume': 995900, 'exchange': 'NASDAQ Global Select', 'exchangeShortName': 'NASDAQ', 'country': 'NL', 'isEtf': False,
-        #                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                'isActivelyTrading': True}, {'symbol': 'AVGO', 'companyName': 'Broadcom Inc.', 'marketCap': 240877841000, 'sector': 'Technology', 'industry': 'Semiconductors', 'beta': 1.120641, 'price': 577.75, 'lastAnnualDividend': 16.9, 'volume': 1535326, 'exchange': 'NASDAQ Global Select', 'exchangeShortName': 'NASDAQ', 'country': 'US', 'isEtf': False, 'isActivelyTrading': True}, {'symbol': 'CSCO', 'companyName': 'Cisco Systems, Inc.', 'marketCap': 198565355151, 'sector': 'Technology', 'industry': 'Communication Equipment', 'beta': 0.954672, 'price': 48.48, 'lastAnnualDividend': 1.52, 'volume': 17251578, 'exchange': 'NASDAQ Global Select', 'exchangeShortName': 'NASDAQ', 'country': 'US', 'isEtf': False, 'isActivelyTrading': True}, {'symbol': 'TXN', 'companyName': 'Texas Instruments Incorporated', 'marketCap': 153275685546, 'sector': 'Technology', 'industry': 'Semiconductors', 'beta': 1.014993, 'price': 169.14, 'lastAnnualDividend': 3.5399999999999996, 'volume': 4118305, 'exchange': 'NASDAQ Global Select', 'exchangeShortName': 'NASDAQ', 'country': 'US', 'isEtf': False, 'isActivelyTrading': True}, {'symbol': 'ADBE', 'companyName': 'Adobe Inc.', 'marketCap': 146743212000, 'sector': 'Technology', 'industry': 'Software—Infrastructure', 'beta': 1.227684, 'price': 320.54, 'lastAnnualDividend': 0, 'volume': 8444481, 'exchange': 'NASDAQ Global Select', 'exchangeShortName': 'NASDAQ', 'country': 'US', 'isEtf': False, 'isActivelyTrading': True}, {'symbol': 'QCOM', 'companyName': 'QUALCOMM Incorporated', 'marketCap': 138639107958, 'sector': 'Technology', 'industry': 'Semiconductors', 'beta': 1.291143, 'price': 124.34, 'lastAnnualDividend': 3, 'volume': 7357182, 'exchange': 'NASDAQ Global Select', 'exchangeShortName': 'NASDAQ', 'country': 'US', 'isEtf': False, 'isActivelyTrading': True}, {'symbol': 'AMD',
-        #                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                'companyName': 'Advanced Micro Devices, Inc.', 'marketCap': 125909187402, 'sector': 'Technology', 'industry': 'Semiconductors', 'beta': 1.981171, 'price': 78.09, 'lastAnnualDividend': 0, 'volume': 46700007, 'exchange': 'NASDAQ Global Select', 'exchangeShortName': 'NASDAQ', 'country': 'US', 'isEtf': False, 'isActivelyTrading': True}]
+        response = requests.get(url)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
         sector_data=response.json()
-        symbols = [symbol['symbol'] for symbol in sector_data]
-        symbols = json.dumps(symbols)
-        print("sector_data", symbols)
+        symbolList = []
+        NameList = []
+        industryList = []
+        for obj in sector_data:
+            symbolList.append(obj['symbol'])
+            NameList.append(obj['companyName'])
+            industryList.append(obj['industry'])
+        symbolList = json.dumps(symbolList)
+        NameList = json.dumps(NameList)
+        industryList = json.dumps(industryList)
+        print(symbolList, "\n")
+        print(NameList, "\n")
+        print(industryList, "\n")
         
         return None
