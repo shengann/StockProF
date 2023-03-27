@@ -2,8 +2,8 @@ import requests
 import json
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from StockProf_app.models import financialRatios, stock
-from StockProf_app.api.serializer import finacialRatiosSerializer, stockSerializer
+from StockProf_app.models import financialRatios, stock, MY_stock, MY_financialRatios, MY_stockPrice
+from StockProf_app.api.serializer import finacialRatiosSerializer, stockSerializer, MY_finacial_ratiosSerializer, MY_stockSerializer
 from rest_framework import views
 import pandas as pd
 from datetime import datetime as dt
@@ -12,19 +12,33 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.neighbors import LocalOutlierFactor
 from sklearn.mixture import BayesianGaussianMixture
 from django.http import HttpResponse, HttpResponseNotFound
+from selenium import webdriver
+import time
+import datetime
 
 
 class filterStock(APIView):
     def get(self, request, *args, **kwargs):
         sector = self.kwargs['sector']
-        stocks = stock.objects.filter(Sector=sector)
-        serializer = stockSerializer(stocks, many=True)
+        # stocks = stock.objects.filter(Sector=sector)
+        # serializer = stockSerializer(stocks, many=True)
+        stocks = MY_stock.objects.filter(Category=sector)
+        serializer = MY_stockSerializer(stocks, many=True)
         return Response(serializer.data)
+    
+    def delete(self, request, *args, **kwargs):
+        sector = self.kwargs['sector']
+        stocks = stock.objects.filter(Sector=sector)
+        stocks.delete()
+        return None
+
     
 class stockList(APIView):
     def get(self, request, format=None):
-        stocks = stock.objects.all()
-        serializer = stockSerializer(stocks, many=True)
+        # stocks = stock.objects.all()
+        # serializer = stockSerializer(stocks, many=True)
+        stocks = MY_stock.objects.all()
+        serializer = MY_stockSerializer(stocks, many=True)
         return Response(serializer.data)
     
 class getFinancialRatosData(views.APIView):
@@ -77,11 +91,14 @@ class getStockData(views.APIView):
         
     def post(self, request, *args, **kwargs):
         ticker_list = request.data.get('ticker_list')
+        name_list = request.data.get('name_list')
+        industry_list = request.data.get('industry_list')
         sector = request.data.get('sector')
-        for Symbol in ticker_list:
+        for Symbol, Name, Industry in zip(ticker_list, name_list, industry_list):
             print(Symbol)
             print(sector)
-            stock.objects.create( Symbol=Symbol,Sector =sector)
+            stock.objects.create(Symbol=Symbol, Sector=sector,
+                                 Name=Name, Industry=Industry)
         return None
         
 
@@ -93,16 +110,17 @@ class getStockData(views.APIView):
 class getStockProfData(views.APIView):   
     def post(self, request, format=None):
         ticker_list = request.data.get('ticker_list')
-        date_data = request.data.get('date')
+        # date_data = request.data.get('date') #for us stock
 
-        stockTicker = stock.objects.filter(Symbol__in=ticker_list)
-        date = timezone.datetime.strptime(date_data, '%Y-%m-%d').date()
-        data = financialRatios.objects.filter(ticker__in=stockTicker, date__exact=date)
-        
-        data_frame = pd.DataFrame((finacialRatiosSerializer(data, many=True)).data)
+        # stockTicker = stock.objects.filter(Symbol__in=ticker_list)
+        # date = timezone.datetime.strptime(date_data, '%Y-%m-%d').date()
+        # data = financialRatios.objects.filter(ticker__in=stockTicker, date__exact=date) # for us stock
+        stockTicker = MY_stock.objects.filter(Symbol__in=ticker_list)
+        data = MY_financialRatios.objects.filter(ticker__in=stockTicker)
+        data_frame = pd.DataFrame((MY_finacial_ratiosSerializer(data, many=True)).data)
         pd.set_option('display.max_rows', None)
         print("data_frame\n", data_frame)
-        data_frame=data_frame.drop(columns=['date','id'])
+        data_frame=data_frame.drop(columns=['id'])
         
         scaler = MinMaxScaler()
         columns = ['assetturnover', 'quickratio', 'debttoequity','roe', 'dividendyield', 'pricetoearnings']
@@ -144,8 +162,8 @@ class getStockProfData(views.APIView):
         clusteringList=[]
         for ticker_list in lists:
             print("\n",ticker_list)
-            clusteredStocks = stock.objects.filter(Symbol__in=ticker_list) 
-            serializer = stockSerializer(clusteredStocks, many=True)
+            clusteredStocks = MY_stock.objects.filter(Symbol__in=ticker_list) 
+            serializer = MY_stockSerializer(clusteredStocks, many=True)
             clusteringList.append(serializer.data)
         
         print("clusteringList", clusteringList)
@@ -162,13 +180,126 @@ class getIndustryTicker(views.APIView):
         sector = self.kwargs['sector']
         url = "https://financialmodelingprep.com/api/v3/stock-screener?marketCapMoreThan=2000000000&isEtf=false&isActivelyTrading=True&sector={sector}&exchange=NASDAQ&limit=500&apikey=ae939e4358f7c5e3f91ed3594ba67d1b"
         url = url.format(sector=sector)
-        response = requests.get(url)
-        # sector_data = [{'symbol': 'AAPL', 'companyName': 'Apple Inc.', 'marketCap': 2321230916137, 'sector': 'Technology', 'industry': 'Consumer Electronics', 'beta': 1.277894, 'price': 146.71, 'lastAnnualDividend': 0.91, 'volume': 55344942, 'exchange': 'NASDAQ Global Select', 'exchangeShortName': 'NASDAQ', 'country': 'US', 'isEtf': False, 'isActivelyTrading': True}, {'symbol': 'MSFT', 'companyName': 'Microsoft Corporation', 'marketCap': 1855143851950, 'sector': 'Technology', 'industry': 'Software—Infrastructure', 'beta': 0.91562, 'price': 249.22, 'lastAnnualDividend': 2.54, 'volume': 24990905, 'exchange': 'NASDAQ Global Select', 'exchangeShortName': 'NASDAQ', 'country': 'US', 'isEtf': False, 'isActivelyTrading': True}, {'symbol': 'NVDA', 'companyName': 'NVIDIA Corporation', 'marketCap': 580287120000, 'sector': 'Technology', 'industry': 'Semiconductors', 'beta': 1.790446, 'price': 232.86, 'lastAnnualDividend': 0.16, 'volume': 58971591, 'exchange': 'NASDAQ Global Select', 'exchangeShortName': 'NASDAQ', 'country': 'US', 'isEtf': False, 'isActivelyTrading': True}, {'symbol': 'ASML', 'companyName': 'ASML Holding N.V.', 'marketCap': 244006574094, 'sector': 'Technology', 'industry': 'Semiconductor Equipment & Materials', 'beta': 1.232504, 'price': 618.38, 'lastAnnualDividend': 5.639, 'volume': 995900, 'exchange': 'NASDAQ Global Select', 'exchangeShortName': 'NASDAQ', 'country': 'NL', 'isEtf': False,
-        #                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                'isActivelyTrading': True}, {'symbol': 'AVGO', 'companyName': 'Broadcom Inc.', 'marketCap': 240877841000, 'sector': 'Technology', 'industry': 'Semiconductors', 'beta': 1.120641, 'price': 577.75, 'lastAnnualDividend': 16.9, 'volume': 1535326, 'exchange': 'NASDAQ Global Select', 'exchangeShortName': 'NASDAQ', 'country': 'US', 'isEtf': False, 'isActivelyTrading': True}, {'symbol': 'CSCO', 'companyName': 'Cisco Systems, Inc.', 'marketCap': 198565355151, 'sector': 'Technology', 'industry': 'Communication Equipment', 'beta': 0.954672, 'price': 48.48, 'lastAnnualDividend': 1.52, 'volume': 17251578, 'exchange': 'NASDAQ Global Select', 'exchangeShortName': 'NASDAQ', 'country': 'US', 'isEtf': False, 'isActivelyTrading': True}, {'symbol': 'TXN', 'companyName': 'Texas Instruments Incorporated', 'marketCap': 153275685546, 'sector': 'Technology', 'industry': 'Semiconductors', 'beta': 1.014993, 'price': 169.14, 'lastAnnualDividend': 3.5399999999999996, 'volume': 4118305, 'exchange': 'NASDAQ Global Select', 'exchangeShortName': 'NASDAQ', 'country': 'US', 'isEtf': False, 'isActivelyTrading': True}, {'symbol': 'ADBE', 'companyName': 'Adobe Inc.', 'marketCap': 146743212000, 'sector': 'Technology', 'industry': 'Software—Infrastructure', 'beta': 1.227684, 'price': 320.54, 'lastAnnualDividend': 0, 'volume': 8444481, 'exchange': 'NASDAQ Global Select', 'exchangeShortName': 'NASDAQ', 'country': 'US', 'isEtf': False, 'isActivelyTrading': True}, {'symbol': 'QCOM', 'companyName': 'QUALCOMM Incorporated', 'marketCap': 138639107958, 'sector': 'Technology', 'industry': 'Semiconductors', 'beta': 1.291143, 'price': 124.34, 'lastAnnualDividend': 3, 'volume': 7357182, 'exchange': 'NASDAQ Global Select', 'exchangeShortName': 'NASDAQ', 'country': 'US', 'isEtf': False, 'isActivelyTrading': True}, {'symbol': 'AMD',
-        #                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                'companyName': 'Advanced Micro Devices, Inc.', 'marketCap': 125909187402, 'sector': 'Technology', 'industry': 'Semiconductors', 'beta': 1.981171, 'price': 78.09, 'lastAnnualDividend': 0, 'volume': 46700007, 'exchange': 'NASDAQ Global Select', 'exchangeShortName': 'NASDAQ', 'country': 'US', 'isEtf': False, 'isActivelyTrading': True}]
+        response = requests.get(url)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
         sector_data=response.json()
-        symbols = [symbol['symbol'] for symbol in sector_data]
-        symbols = json.dumps(symbols)
-        print("sector_data", symbols)
+        symbolList = []
+        NameList = []
+        industryList = []
+        for obj in sector_data:
+            symbolList.append(obj['symbol'])
+            NameList.append(obj['companyName'])
+            industryList.append(obj['industry'])
+        symbolList = json.dumps(symbolList)
+        NameList = json.dumps(NameList)
+        industryList = json.dumps(industryList)
+        print(symbolList, "\n")
+        print(NameList, "\n")
+        print(industryList, "\n")
         
+        return None
+    
+
+class MY_getFinancialRatiosData(views.APIView):
+    def get(self, request, *args, **kwargs):
+        url = 'https://www.klsescreener.com/v2/screener/quote_results'
+        header = {
+            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.75 Safari/537.36",
+            "X-Requested-With": "XMLHttpRequest"
+        }
+        form_data = {'getquote': '1', 'board': '1', 'sector': '42'}
+        server = requests.post(url, data=form_data, headers=header)
+        output = server.text
+        filtered_data = pd.read_html(output)
+        filtered_data = pd.DataFrame(filtered_data[0])
+        filtered_data = filtered_data[['Name', 'Code', 'Category']]
+        filtered_data['Code'] = filtered_data['Code'].apply(lambda x: '{:04d}'.format(int(x)))
+        for i, row in filtered_data.iterrows():
+            MY_stock.objects.create(Symbol=row['Code'], Category=row['Category'], Name=row['Name'])
+        code_list = filtered_data['Code'].tolist()
+
+        for Symbol in code_list:
+            print(Symbol)
+            url = 'https://www.wsj.com/market-data/quotes/MY/{Symbol}/financials'
+            klseScreener_url = 'https://www.klsescreener.com/v2/stocks/view/{Symbol}'
+            url = url.format(Symbol=Symbol)
+            klseScreener_url = klseScreener_url.format(Symbol=Symbol)
+
+            r = requests.get(url, headers=header)
+            r_1 = requests.get(klseScreener_url, headers=header)
+            data = pd.read_html(r.text)
+            klseScreener_data = pd.read_html(r_1.text)
+            dividendyield = pd.DataFrame(klseScreener_data[0])
+            dividendyield = dividendyield.rename(columns={0: 'StringColumn', 1: 'NumberColumn'})
+            dividendyield = dividendyield.loc[dividendyield['StringColumn'].isin(['DY'])]
+
+            result = pd.concat([pd.DataFrame(data[2]), pd.DataFrame(data[3]), pd.DataFrame(data[4]), pd.DataFrame(data[5]), pd.DataFrame(data[6])])
+            result = result.rename(columns={0: 'data'})
+            result[['StringColumn', 'NumberColumn']] = result['data'].str.extract('([\s()A-Za-z]+)([-\d.]+)')
+
+            result = result.drop(['data'], axis=1)
+
+            result['StringColumn'] = result['StringColumn'].str.replace(' ', '')
+            result = result.loc[result['StringColumn'].isin(['ERatio(TTM)', 'TotalAssetTurnover', 'QuickRatio', 'ReturnonEquity', 'TotalDebttoTotalEquity'])]
+            result = result.append(dividendyield, ignore_index=True)
+
+            result = result.set_index('StringColumn').T
+            result = result.rename_axis(None, axis=1).reset_index(drop=True)
+            result['DY'] = result['DY'].str.replace('%', '')
+            result[['ERatio(TTM)', 'TotalAssetTurnover', 'QuickRatio', 'ReturnonEquity', 'TotalDebttoTotalEquity', 'DY']] = result[['ERatio(TTM)', 'TotalAssetTurnover', 'QuickRatio', 'ReturnonEquity', 'TotalDebttoTotalEquity', 'DY']].replace('-', '0')
+            result['Code'] = Symbol
+            
+            for i, row in result.iterrows():
+                stockTicker = MY_stock.objects.get(Symbol=Symbol)
+                MY_financialRatios.objects.create(ticker=stockTicker, assetturnover=row['TotalAssetTurnover'], quickratio=row['QuickRatio'],
+                                                  roe=row['ReturnonEquity'], pricetoearnings=row['ERatio(TTM)'], dividendyield=row['DY'], debttoequity=row['TotalDebttoTotalEquity'])
+        return None
+
+class MY_getStockPrice (views.APIView):
+    def get(self, request, *args, **kwargs):
+        code_list = ['0002', '0222']
+
+
+        for Symbol in code_list:
+            # Replace with the website URL you want to inspect
+            url = 'https://www.bursamalaysia.com/trade/trading_resources/listing_directory/company-profile?stock_code={Symbol}'
+
+            # Configure the browser options
+            options = webdriver.ChromeOptions()
+            options.add_argument('--disable-extensions')
+            # Run the browser in headless mode to avoid opening a window
+            options.add_argument('--headless')
+
+            # Create the browser object
+            browser = webdriver.Chrome(options=options)
+            url = url.format(Symbol=Symbol)
+            # Navigate to the website and wait for it to load
+            browser.get(url)
+            time.sleep(1)  # Wait for 5 seconds to allow the website to load
+
+            # Get all the XHR requests made by the website
+            xhr_requests = browser.execute_script(
+                "return window.performance.getEntriesByType('resource');")
+
+            # Filter the XHR requests to only include those with the 'xmlhttprequest' type
+            xhr_requests = [
+                xhr for xhr in xhr_requests if 'xmlhttprequest' in xhr['initiatorType'].lower()]
+
+            print(f"Number of XHR requests: {len(xhr_requests)}")
+            request_list = []
+            for i, xhr in enumerate(xhr_requests):
+                request_list.append(xhr['name'])
+            stockprice_url = []
+            for url in request_list:
+                if "stock_price" in url:
+                    print(url)
+                    response = requests.get(url)
+                    response_json = response.json()
+                    historicalPrice_list= response_json['historical_data']['data']
+                    for i in historicalPrice_list:
+                        date = datetime.datetime.fromtimestamp(i['date'] / 1000.0).date()
+                        print(date)
+                        if i['vol'] == '-':
+                            i['vol'] = 0
+                        stockTicker = MY_stock.objects.get(Symbol=Symbol)
+                        MY_stockPrice.objects.create(ticker=stockTicker, date=date, open=i['open'], high=i['high'],  low=i['low'],  close=i['close'], volume=i['vol'])
         return None

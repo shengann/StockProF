@@ -18,13 +18,34 @@
     <button to="portfolio" @click="navigateToPortfolio" type="button"  class="btn btn-primary">Generate Portfolio</button> 
 
     <div class="box">
-      <div
+      <!-- <div
         v-for="stock in stocks"
         v-bind:key="stock.id"
       >
-        <div class="is-size-4">{{stock.Symbol}} {{ stock.Sector }}</div>
+        <div class="is-size-4">{{stock.Symbol}} {{ stock.Category }}</div>
         <router-link v-bind:to="stock.get_absolute_url" class="button is-dark mt-4">View details</router-link>
-      </div>
+      </div> -->
+    <div>
+        <table class="table">
+        <thead>
+          <tr>
+            <th class="text-center" scope="col">Name</th>
+            <th class="text-center" scope="col">Code</th>
+            <th class="text-center" scope="col">Category</th>
+             <th class="text-center" scope="col"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="stock in stocks" :key="stock.id">
+            <td scope="row">{{ stock.Name }}</td>
+            <td scope="row">{{ stock.Symbol }}</td>
+            <td scope="row">{{ stock.Category }}</td>
+            <td scope="row"><router-link v-bind:to="stock.get_absolute_url" class="button is-dark mt-4">View details</router-link></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    
     </div>
   </div>
 </template>
@@ -53,8 +74,8 @@ export default {
         .then(response => {
           this.stocks = response.data,
             console.log(response.data)
-            const sectors = response.data.map(sector => sector.Sector);
-            sectors.forEach(sector => this.options.add(sector));
+            const Category = response.data.map(Category => Category.Category);
+            Category.forEach(Category => this.options.add(Category));
         })
         .catch(error => {
           console.log(error)
