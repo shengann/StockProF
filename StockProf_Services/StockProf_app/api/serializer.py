@@ -29,7 +29,7 @@ class MY_finacial_ratiosSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class MY_stocksSerializer(serializers.ModelSerializer):
+class MY_stockSerializer(serializers.ModelSerializer):
     class Meta:
         model = MY_stock
         fields = (

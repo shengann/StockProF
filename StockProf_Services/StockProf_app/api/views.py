@@ -3,7 +3,7 @@ import json
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from StockProf_app.models import financialRatios, stock, MY_stock, MY_financialRatios
-from StockProf_app.api.serializer import finacialRatiosSerializer, stockSerializer, MY_finacial_ratiosSerializer, MY_stocksSerializer
+from StockProf_app.api.serializer import finacialRatiosSerializer, stockSerializer, MY_finacial_ratiosSerializer, MY_stockSerializer
 from rest_framework import views
 import pandas as pd
 from datetime import datetime as dt
@@ -17,8 +17,10 @@ from django.http import HttpResponse, HttpResponseNotFound
 class filterStock(APIView):
     def get(self, request, *args, **kwargs):
         sector = self.kwargs['sector']
-        stocks = stock.objects.filter(Sector=sector)
-        serializer = stockSerializer(stocks, many=True)
+        # stocks = stock.objects.filter(Sector=sector)
+        # serializer = stockSerializer(stocks, many=True)
+        stocks = MY_stock.objects.filter(Category=sector)
+        serializer = MY_stockSerializer(stocks, many=True)
         return Response(serializer.data)
     
     def delete(self, request, *args, **kwargs):
@@ -30,8 +32,10 @@ class filterStock(APIView):
     
 class stockList(APIView):
     def get(self, request, format=None):
-        stocks = stock.objects.all()
-        serializer = stockSerializer(stocks, many=True)
+        # stocks = stock.objects.all()
+        # serializer = stockSerializer(stocks, many=True)
+        stocks = MY_stock.objects.all()
+        serializer = MY_stockSerializer(stocks, many=True)
         return Response(serializer.data)
     
 class getFinancialRatosData(views.APIView):
@@ -156,7 +160,7 @@ class getStockProfData(views.APIView):
         for ticker_list in lists:
             print("\n",ticker_list)
             clusteredStocks = MY_stock.objects.filter(Symbol__in=ticker_list) 
-            serializer = MY_stocksSerializer(clusteredStocks, many=True)
+            serializer = MY_stockSerializer(clusteredStocks, many=True)
             clusteringList.append(serializer.data)
         
         print("clusteringList", clusteringList)
