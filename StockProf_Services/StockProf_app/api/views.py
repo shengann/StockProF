@@ -2,7 +2,7 @@ import requests
 import json
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from StockProf_app.models import financialRatios, stock
+from StockProf_app.models import financialRatios, stock, MY_stock, MY_financialRatios
 from StockProf_app.api.serializer import finacialRatiosSerializer, stockSerializer
 from rest_framework import views
 import pandas as pd
@@ -188,4 +188,60 @@ class getIndustryTicker(views.APIView):
         print(NameList, "\n")
         print(industryList, "\n")
         
+        return None
+    
+
+class MY_getFinancialRatiosData(views.APIView):
+    def get(self, request, *args, **kwargs):
+        url = 'https://www.klsescreener.com/v2/screener/quote_results'
+        header = {
+            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.75 Safari/537.36",
+            "X-Requested-With": "XMLHttpRequest"
+        }
+        form_data = {'getquote': '1', 'board': '1', 'sector': '42'}
+        server = requests.post(url, data=form_data, headers=header)
+        output = server.text
+        filtered_data = pd.read_html(output)
+        filtered_data = pd.DataFrame(filtered_data[0])
+        filtered_data = filtered_data[['Name', 'Code', 'Category']]
+        filtered_data['Code'] = filtered_data['Code'].apply(lambda x: '{:04d}'.format(int(x)))
+        for i, row in filtered_data.iterrows():
+            MY_stock.objects.create(Symbol=row['Code'], Category=row['Category'], Name=row['Name'])
+        code_list = filtered_data['Code'].tolist()
+
+        for Symbol in code_list:
+            print(Symbol)
+            url = 'https://www.wsj.com/market-data/quotes/MY/{Symbol}/financials'
+            klseScreener_url = 'https://www.klsescreener.com/v2/stocks/view/{Symbol}'
+            url = url.format(Symbol=Symbol)
+            klseScreener_url = klseScreener_url.format(Symbol=Symbol)
+
+            r = requests.get(url, headers=header)
+            r_1 = requests.get(klseScreener_url, headers=header)
+            data = pd.read_html(r.text)
+            klseScreener_data = pd.read_html(r_1.text)
+            dividendyield = pd.DataFrame(klseScreener_data[0])
+            dividendyield = dividendyield.rename(columns={0: 'StringColumn', 1: 'NumberColumn'})
+            dividendyield = dividendyield.loc[dividendyield['StringColumn'].isin(['DY'])]
+
+            result = pd.concat([pd.DataFrame(data[2]), pd.DataFrame(data[3]), pd.DataFrame(data[4]), pd.DataFrame(data[5]), pd.DataFrame(data[6])])
+            result = result.rename(columns={0: 'data'})
+            result[['StringColumn', 'NumberColumn']] = result['data'].str.extract('([\s()A-Za-z]+)([-\d.]+)')
+
+            result = result.drop(['data'], axis=1)
+
+            result['StringColumn'] = result['StringColumn'].str.replace(' ', '')
+            result = result.loc[result['StringColumn'].isin(['ERatio(TTM)', 'TotalAssetTurnover', 'QuickRatio', 'ReturnonEquity', 'TotalDebttoTotalEquity'])]
+            result = result.append(dividendyield, ignore_index=True)
+
+            result = result.set_index('StringColumn').T
+            result = result.rename_axis(None, axis=1).reset_index(drop=True)
+            result['DY'] = result['DY'].str.replace('%', '')
+            result[['ERatio(TTM)', 'TotalAssetTurnover', 'QuickRatio', 'ReturnonEquity', 'TotalDebttoTotalEquity', 'DY']] = result[['ERatio(TTM)', 'TotalAssetTurnover', 'QuickRatio', 'ReturnonEquity', 'TotalDebttoTotalEquity', 'DY']].replace('-', '0')
+            result['Code'] = Symbol
+            
+            for i, row in result.iterrows():
+                stockTicker = MY_stock.objects.get(Symbol=Symbol)
+                MY_financialRatios.objects.create(ticker=stockTicker, assetturnover=row['TotalAssetTurnover'], quickratio=row['QuickRatio'],
+                                                  roe=row['ReturnonEquity'], pricetoearnings=row['ERatio(TTM)'], dividendyield=row['DY'], debttoequity=row['TotalDebttoTotalEquity'])
         return None
