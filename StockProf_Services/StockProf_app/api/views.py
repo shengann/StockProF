@@ -2,7 +2,7 @@ import requests
 import json
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from StockProf_app.models import financialRatios, stock, MY_stock, MY_financialRatios
+from StockProf_app.models import financialRatios, stock, MY_stock, MY_financialRatios, MY_stockPrice
 from StockProf_app.api.serializer import finacialRatiosSerializer, stockSerializer, MY_finacial_ratiosSerializer, MY_stockSerializer
 from rest_framework import views
 import pandas as pd
@@ -12,6 +12,9 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.neighbors import LocalOutlierFactor
 from sklearn.mixture import BayesianGaussianMixture
 from django.http import HttpResponse, HttpResponseNotFound
+from selenium import webdriver
+import time
+import datetime
 
 
 class filterStock(APIView):
@@ -249,4 +252,54 @@ class MY_getFinancialRatiosData(views.APIView):
                 stockTicker = MY_stock.objects.get(Symbol=Symbol)
                 MY_financialRatios.objects.create(ticker=stockTicker, assetturnover=row['TotalAssetTurnover'], quickratio=row['QuickRatio'],
                                                   roe=row['ReturnonEquity'], pricetoearnings=row['ERatio(TTM)'], dividendyield=row['DY'], debttoequity=row['TotalDebttoTotalEquity'])
+        return None
+
+class MY_getStockPrice (views.APIView):
+    def get(self, request, *args, **kwargs):
+        code_list = ['0002', '0222']
+
+
+        for Symbol in code_list:
+            # Replace with the website URL you want to inspect
+            url = 'https://www.bursamalaysia.com/trade/trading_resources/listing_directory/company-profile?stock_code={Symbol}'
+
+            # Configure the browser options
+            options = webdriver.ChromeOptions()
+            options.add_argument('--disable-extensions')
+            # Run the browser in headless mode to avoid opening a window
+            options.add_argument('--headless')
+
+            # Create the browser object
+            browser = webdriver.Chrome(options=options)
+            url = url.format(Symbol=Symbol)
+            # Navigate to the website and wait for it to load
+            browser.get(url)
+            time.sleep(1)  # Wait for 5 seconds to allow the website to load
+
+            # Get all the XHR requests made by the website
+            xhr_requests = browser.execute_script(
+                "return window.performance.getEntriesByType('resource');")
+
+            # Filter the XHR requests to only include those with the 'xmlhttprequest' type
+            xhr_requests = [
+                xhr for xhr in xhr_requests if 'xmlhttprequest' in xhr['initiatorType'].lower()]
+
+            print(f"Number of XHR requests: {len(xhr_requests)}")
+            request_list = []
+            for i, xhr in enumerate(xhr_requests):
+                request_list.append(xhr['name'])
+            stockprice_url = []
+            for url in request_list:
+                if "stock_price" in url:
+                    print(url)
+                    response = requests.get(url)
+                    response_json = response.json()
+                    historicalPrice_list= response_json['historical_data']['data']
+                    for i in historicalPrice_list:
+                        date = datetime.datetime.fromtimestamp(i['date'] / 1000.0).date()
+                        print(date)
+                        if i['vol'] == '-':
+                            i['vol'] = 0
+                        stockTicker = MY_stock.objects.get(Symbol=Symbol)
+                        MY_stockPrice.objects.create(ticker=stockTicker, date=date, open=i['open'], high=i['high'],  low=i['low'],  close=i['close'], volume=i['vol'])
         return None
