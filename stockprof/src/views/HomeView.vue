@@ -22,7 +22,7 @@
         v-for="stock in stocks"
         v-bind:key="stock.id"
       >
-        <div class="is-size-4">{{stock.Symbol}} {{ stock.Sector }}</div>
+        <div class="is-size-4">{{stock.Symbol}} {{ stock.Category }}</div>
         <router-link v-bind:to="stock.get_absolute_url" class="button is-dark mt-4">View details</router-link>
       </div>
     </div>
@@ -53,8 +53,8 @@ export default {
         .then(response => {
           this.stocks = response.data,
             console.log(response.data)
-            const sectors = response.data.map(sector => sector.Sector);
-            sectors.forEach(sector => this.options.add(sector));
+            const Category = response.data.map(Category => Category.Category);
+            Category.forEach(Category => this.options.add(Category));
         })
         .catch(error => {
           console.log(error)
