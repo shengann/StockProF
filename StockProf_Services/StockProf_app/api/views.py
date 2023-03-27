@@ -3,7 +3,7 @@ import json
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from StockProf_app.models import financialRatios, stock, MY_stock, MY_financialRatios
-from StockProf_app.api.serializer import finacialRatiosSerializer, stockSerializer
+from StockProf_app.api.serializer import finacialRatiosSerializer, stockSerializer, MY_finacial_ratiosSerializer, MY_stocksSerializer
 from rest_framework import views
 import pandas as pd
 from datetime import datetime as dt
@@ -103,16 +103,17 @@ class getStockData(views.APIView):
 class getStockProfData(views.APIView):   
     def post(self, request, format=None):
         ticker_list = request.data.get('ticker_list')
-        date_data = request.data.get('date')
+        # date_data = request.data.get('date') #for us stock
 
-        stockTicker = stock.objects.filter(Symbol__in=ticker_list)
-        date = timezone.datetime.strptime(date_data, '%Y-%m-%d').date()
-        data = financialRatios.objects.filter(ticker__in=stockTicker, date__exact=date)
-        
-        data_frame = pd.DataFrame((finacialRatiosSerializer(data, many=True)).data)
+        # stockTicker = stock.objects.filter(Symbol__in=ticker_list)
+        # date = timezone.datetime.strptime(date_data, '%Y-%m-%d').date()
+        # data = financialRatios.objects.filter(ticker__in=stockTicker, date__exact=date) # for us stock
+        stockTicker = MY_stock.objects.filter(Symbol__in=ticker_list)
+        data = MY_financialRatios.objects.filter(ticker__in=stockTicker)
+        data_frame = pd.DataFrame((MY_finacial_ratiosSerializer(data, many=True)).data)
         pd.set_option('display.max_rows', None)
         print("data_frame\n", data_frame)
-        data_frame=data_frame.drop(columns=['date','id'])
+        data_frame=data_frame.drop(columns=['id'])
         
         scaler = MinMaxScaler()
         columns = ['assetturnover', 'quickratio', 'debttoequity','roe', 'dividendyield', 'pricetoearnings']
@@ -154,8 +155,8 @@ class getStockProfData(views.APIView):
         clusteringList=[]
         for ticker_list in lists:
             print("\n",ticker_list)
-            clusteredStocks = stock.objects.filter(Symbol__in=ticker_list) 
-            serializer = stockSerializer(clusteredStocks, many=True)
+            clusteredStocks = MY_stock.objects.filter(Symbol__in=ticker_list) 
+            serializer = MY_stocksSerializer(clusteredStocks, many=True)
             clusteringList.append(serializer.data)
         
         print("clusteringList", clusteringList)

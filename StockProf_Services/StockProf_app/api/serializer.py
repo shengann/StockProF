@@ -23,13 +23,13 @@ class stockSerializer(serializers.ModelSerializer):
         )
         
 
-class finacial_ratiosSerializer(serializers.ModelSerializer):
+class MY_finacial_ratiosSerializer(serializers.ModelSerializer):
     class Meta:
         model = MY_financialRatios
         fields = '__all__'
 
 
-class StocksSerializer(serializers.ModelSerializer):
+class MY_stocksSerializer(serializers.ModelSerializer):
     class Meta:
         model = MY_stock
         fields = (
@@ -37,7 +37,5 @@ class StocksSerializer(serializers.ModelSerializer):
             "Symbol",
             "Name",
             "get_absolute_url",
-            "Exchange",
-            "Sector",
-            "Industry",
+            "Category"
         )
