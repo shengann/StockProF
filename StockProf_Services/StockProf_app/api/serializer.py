@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from StockProf_app.models import stock, financialRatios, MY_financialRatios, MY_stock
+from StockProf_app.models import stock, financialRatios, MY_financialRatios, MY_stock, MY_stockPrice
 
 class finacialRatiosSerializer(serializers.ModelSerializer):
     class Meta:
@@ -39,3 +39,9 @@ class MY_stockSerializer(serializers.ModelSerializer):
             "get_absolute_url",
             "Category"
         )
+
+
+class MY_stockPriceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MY_stockPrice
+        fields = '__all__'
