@@ -61,7 +61,7 @@ class MY_stockPrice (models.Model):
     low = models.DecimalField(max_digits=15, decimal_places=4)
     close = models.DecimalField(max_digits=15, decimal_places=4)
     volume = models.DecimalField(max_digits=15, decimal_places=4)
-    date = date = models.DateField()
+    date = models.DateField()
 
 
     def __str__(self):

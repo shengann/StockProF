@@ -3,7 +3,7 @@ import json
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from StockProf_app.models import financialRatios, stock, MY_stock, MY_financialRatios, MY_stockPrice
-from StockProf_app.api.serializer import finacialRatiosSerializer, stockSerializer, MY_finacial_ratiosSerializer, MY_stockSerializer
+from StockProf_app.api.serializer import finacialRatiosSerializer, stockSerializer, MY_finacial_ratiosSerializer, MY_stockSerializer, MY_stockPriceSerializer
 from rest_framework import views
 import pandas as pd
 from datetime import datetime as dt
@@ -12,6 +12,7 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.neighbors import LocalOutlierFactor
 from sklearn.mixture import BayesianGaussianMixture
 from django.http import HttpResponse, HttpResponseNotFound
+from django.http import JsonResponse
 from selenium import webdriver
 import time
 import datetime
@@ -117,6 +118,7 @@ class getStockProfData(views.APIView):
         # data = financialRatios.objects.filter(ticker__in=stockTicker, date__exact=date) # for us stock
         stockTicker = MY_stock.objects.filter(Symbol__in=ticker_list)
         data = MY_financialRatios.objects.filter(ticker__in=stockTicker)
+        print(data)
         data_frame = pd.DataFrame((MY_finacial_ratiosSerializer(data, many=True)).data)
         pd.set_option('display.max_rows', None)
         print("data_frame\n", data_frame)
@@ -256,7 +258,7 @@ class MY_getFinancialRatiosData(views.APIView):
 
 class MY_getStockPrice (views.APIView):
     def get(self, request, *args, **kwargs):
-        code_list = ['0002', '0222']
+        code_list = ['0091','7251','2739','7045','5255','5199','5071','5210','3042','7293','5132','7277','5141','5257','7228','7259']
 
 
         for Symbol in code_list:
@@ -303,3 +305,38 @@ class MY_getStockPrice (views.APIView):
                         stockTicker = MY_stock.objects.get(Symbol=Symbol)
                         MY_stockPrice.objects.create(ticker=stockTicker, date=date, open=i['open'], high=i['high'],  low=i['low'],  close=i['close'], volume=i['vol'])
         return None
+    
+class MY_getComparison (views.APIView):
+        def post(self, request, *args, **kwargs):
+            portfolio_list = request.data.get('portfolio_list')
+            outlier_list = request.data.get('outlier_list')
+            initial_date = request.data.get('initial_date')
+            final_date = request.data.get('final_date')
+            capital_gain_loss_list = []
+            for i in portfolio_list:
+                initial_list = []
+                final_list= []
+                for j in i :
+                    stockTicker = MY_stock.objects.filter(Symbol=j)
+                    first_price = MY_stockPrice.objects.filter(ticker__in=stockTicker, date=initial_date)
+                    initial_serializer = MY_stockPriceSerializer(first_price, many=True)
+                    initial_list.append(float(initial_serializer.data[0]['open']))
+                    final_price = MY_stockPrice.objects.filter(ticker__in=stockTicker, date=final_date)
+                    final_serializer = MY_stockPriceSerializer(final_price, many=True)
+                    final_list.append(float(final_serializer.data[0]['close']))
+                    percent_changes = []
+
+                    for i in range(len(initial_list)):
+                        percent_change = (final_list[i] - initial_list[i]) / initial_list[i] * 100.0
+                        percent_changes.append(percent_change)
+                        
+
+                print(percent_changes)
+                average = sum(percent_changes) / len(percent_changes)
+                capital_gain_loss_list.append(average)
+            
+            print('capital_gain_loss_list', capital_gain_loss_list)
+            data = {
+                'Portfolio': capital_gain_loss_list
+            }
+            return JsonResponse(data)
