@@ -1,7 +1,8 @@
 <template>
 
     <div class="page-portfolio">   
-        
+        <button  @click="getComparison" type="button"  class="btn btn-primary">Capital Gain/Lose</button> 
+
         <div
             v-for="stockList in clusteredStocks"
             v-bind:key="stockList.id"
@@ -31,7 +32,10 @@ export default {
     data() {
         return {
             stocks: this.$route.query.selectedStocks,
-            clusteredStocks: []
+            clusteredStocks: [],
+            outlierStocks: [],
+            clusteredStocksSymbols :[], 
+            outlierStocksSymbols : []
         }
     },
     mounted() {
@@ -44,10 +48,36 @@ export default {
             await axios
                 .post('api/stockprof',{
                     "ticker_list":this.stocks,
-                    "date":"2022-09-30"
+                    // "date":"2022-09-30"
                 })
                 .then(response => {
-                    this.clusteredStocks = response.data.data
+                    this.clusteredStocks = response.data.portfolio
+                    this.outlierStocks = response.data.outlier
+                    console.log(this.clusteredStocks)
+                    for (let i=0;i< response.data.portfolio.length;i++) {
+                        const clustered_symbols = response.data.portfolio[i].map(symbol => symbol.Symbol);
+                        this.clusteredStocksSymbols.push(clustered_symbols)
+
+                    }
+                    // this.clusteredStocksSymbols = clustered_symbols
+                    const outlier_symbols = response.data.outlier.map(symbol => symbol.Symbol);
+                    this.outlierStocksSymbols = outlier_symbols
+                })
+                .catch(error => {
+                    console.log(error)
+                }
+                )
+        },
+        async getComparison() {
+            await axios
+                .post('api/comparison', {
+                    "portfolio_list": this.clusteredStocksSymbols,
+                    "outlier_list": this.outlierStocksSymbols,
+                    "initial_date": "2022-01-05",
+                    "final_date": "2023-01-05"
+                })
+                .then(response => {
+                    console.log(response)
                 })
                 .catch(error => {
                     console.log(error)
