@@ -19,8 +19,6 @@ import datetime
 class filterStock(APIView):
     def get(self, request, *args, **kwargs):
         sector = self.kwargs['sector']
-        # stocks = stock.objects.filter(Sector=sector)
-        # serializer = stockSerializer(stocks, many=True)
         stocks = MY_stock.objects.filter(Category=sector)
         serializer = MY_stockSerializer(stocks, many=True)
         return Response(serializer.data)
@@ -34,8 +32,6 @@ class filterStock(APIView):
     
 class stockList(APIView):
     def get(self, request, format=None):
-        # stocks = stock.objects.all()
-        # serializer = stockSerializer(stocks, many=True)
         stocks = MY_stock.objects.all()
         serializer = MY_stockSerializer(stocks, many=True)
         return Response(serializer.data)
@@ -54,11 +50,6 @@ class getStockData(views.APIView):
 class getStockProfData(views.APIView):   
     def post(self, request, format=None):
         ticker_list = request.data.get('ticker_list')
-        # date_data = request.data.get('date') #for us stock
-
-        # stockTicker = stock.objects.filter(Symbol__in=ticker_list)
-        # date = timezone.datetime.strptime(date_data, '%Y-%m-%d').date()
-        # data = financialRatios.objects.filter(ticker__in=stockTicker, date__exact=date) # for us stock
         stockTicker = MY_stock.objects.filter(Symbol__in=ticker_list)
         data = MY_financialRatios.objects.filter(ticker__in=stockTicker)
         print(data)
