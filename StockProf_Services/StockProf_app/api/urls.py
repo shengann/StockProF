@@ -4,7 +4,7 @@ from StockProf_app.api.views import getStockData, getStockProfData, stockList, f
 
 router = DefaultRouter()
 urlpatterns = [
-    path('stocks/<str:sector>', filterStock.as_view(), name='filterStock'),
+    path('stocks/<str:Category>', filterStock.as_view(), name='filterStock'),
     path('stocks', stockList.as_view(), name='stock-List'),
     path('stock/<slug:ticker>',getStockData.as_view(), name='get-Stock-Data'),
     path('stockprof', getStockProfData.as_view(), name='getStockProfData'),
