@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from StockProf_app.models import stock, financialRatios, MY_financialRatios, MY_stock, MY_stockPrice
+from StockProf_app.models import MY_financialRatios, MY_stock, MY_stockPrice
 
 class MY_finacial_ratiosSerializer(serializers.ModelSerializer):
     class Meta:

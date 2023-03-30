@@ -1,9 +1,8 @@
 import requests
-import json
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from StockProf_app.models import financialRatios, stock, MY_stock, MY_financialRatios, MY_stockPrice
-from StockProf_app.api.serializer import finacialRatiosSerializer, stockSerializer, MY_finacial_ratiosSerializer, MY_stockSerializer, MY_stockPriceSerializer
+from StockProf_app.models import  MY_stock, MY_financialRatios, MY_stockPrice
+from StockProf_app.api.serializer import MY_finacial_ratiosSerializer, MY_stockSerializer, MY_stockPriceSerializer
 from rest_framework import views
 import pandas as pd
 from datetime import datetime as dt
@@ -11,7 +10,6 @@ from django.utils import timezone
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.neighbors import LocalOutlierFactor
 from sklearn.mixture import BayesianGaussianMixture
-from django.http import HttpResponse, HttpResponseNotFound
 from django.http import JsonResponse
 from selenium import webdriver
 import time
