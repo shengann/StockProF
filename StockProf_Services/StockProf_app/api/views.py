@@ -31,7 +31,7 @@ class filterStock(APIView):
 
 class filterFinancialRatio(APIView):
     def get(self, request, *args, **kwargs):
-        Category = self.kwargs['ticker']
+        Category = self.kwargs['Category']
         stock_object = MY_stock.objects.filter(Category=Category)
         print("stock_object", stock_object)
         fianacial_ratio = MY_financialRatios.objects.filter(ticker__in=stock_object)
