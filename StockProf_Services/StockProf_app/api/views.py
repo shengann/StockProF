@@ -137,6 +137,15 @@ class getStockProfData(views.APIView):
         lof.fit(data_frame[columns])
         lof_scores = -lof.negative_outlier_factor_
         data_frame['lof_score'] = lof_scores
+        temp_outlierList = []
+        for index, row in data_frame.iterrows():
+            if row['lof_score'] > 1.5:
+                temp_outlierList.append(row['ticker'])
+        outlierList = []
+        for ticker_list in temp_outlierList:
+            clusteredStocks = MY_stock.objects.filter(Symbol=ticker_list)
+            serializer = MY_stockSerializer(clusteredStocks, many=True)
+            outlierList.append(serializer.data[0])
         data_frame.drop(data_frame[data_frame["lof_score"] > 1.5].index, inplace=True)
         data_frame = data_frame.reset_index(drop=True)
         pd.set_option('display.max_rows', None)
@@ -163,7 +172,6 @@ class getStockProfData(views.APIView):
         print(lists)
         clusteringList=[]
         for ticker_list in lists:
-            print("\n",ticker_list)
             clusteredStocks = MY_stock.objects.filter(Symbol__in=ticker_list) 
             serializer = MY_stockSerializer(clusteredStocks, many=True)
             clusteringList.append(serializer.data)
@@ -171,7 +179,8 @@ class getStockProfData(views.APIView):
         print("clusteringList", clusteringList)
         content = {
             'status': 1,
-            'data': clusteringList,
+            'portfolio': clusteringList,
+            'outlier': outlierList
 
         }
         return Response(content)
@@ -258,7 +267,8 @@ class MY_getFinancialRatiosData(views.APIView):
 
 class MY_getStockPrice (views.APIView):
     def get(self, request, *args, **kwargs):
-        code_list = ['0091','7251','2739','7045','5255','5199','5071','5210','3042','7293','5132','7277','5141','5257','7228','7259']
+        code_list = [
+            "0091", "7251", "2739", "7045", "5255", "5199", "5071", "5210", "3042", "7293", "5132", "7277", "5141", "5257", "7228", "7250", "5186", "5133", "7108", "7158", "5142", "5115", "0219", "5243", "4324", "7164", "7253", "5279", "5256", "5218"]
 
 
         for Symbol in code_list:
