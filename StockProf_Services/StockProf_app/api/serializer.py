@@ -1,27 +1,5 @@
 from rest_framework import serializers
-from StockProf_app.models import stock, financialRatios, MY_financialRatios, MY_stock, MY_stockPrice
-
-class finacialRatiosSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = financialRatios
-        # dataDate = serializers.DateTimeField(format="%Y-%m-%d")
-        fields = '__all__'
-        
-        
-class stockSerializer(serializers.ModelSerializer):
-    # financialRatios = finacialRatiosSerializer(many=True)
-    class Meta:
-        model = stock
-        fields = (
-            "id",
-            "Symbol",
-            "Name",
-            "get_absolute_url",
-            "Exchange",
-            "Sector",
-            "Industry",
-        )
-        
+from StockProf_app.models import MY_financialRatios, MY_stock, MY_stockPrice
 
 class MY_finacial_ratiosSerializer(serializers.ModelSerializer):
     class Meta:

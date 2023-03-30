@@ -1,9 +1,8 @@
 import requests
-import json
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from StockProf_app.models import financialRatios, stock, MY_stock, MY_financialRatios, MY_stockPrice
-from StockProf_app.api.serializer import finacialRatiosSerializer, stockSerializer, MY_finacial_ratiosSerializer, MY_stockSerializer, MY_stockPriceSerializer
+from StockProf_app.models import  MY_stock, MY_financialRatios, MY_stockPrice
+from StockProf_app.api.serializer import MY_finacial_ratiosSerializer, MY_stockSerializer, MY_stockPriceSerializer
 from rest_framework import views
 import pandas as pd
 from datetime import datetime as dt
@@ -11,7 +10,6 @@ from django.utils import timezone
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.neighbors import LocalOutlierFactor
 from sklearn.mixture import BayesianGaussianMixture
-from django.http import HttpResponse, HttpResponseNotFound
 from django.http import JsonResponse
 from selenium import webdriver
 import time
@@ -42,44 +40,6 @@ class stockList(APIView):
         serializer = MY_stockSerializer(stocks, many=True)
         return Response(serializer.data)
     
-class getFinancialRatosData(views.APIView):
-    def post(self, request, *args, **kwargs):
-        ticker_list = request.data.get('ticker_list')
-        for Symbol in ticker_list:
-            print(Symbol)
-            stockList = []
-            tags = ['assetturnover', 'quickratio', 'debttoequity','roe', 'pricetoearnings', 'dividendyield']
-            ticker = Symbol
-            
-            for x in tags:
-                url = "https://www.discoverci.com/charts/anychart_data?tag={tag}&ticker={ticker}&type=QTR"
-                tag = x
-                url = url.format(tag=tag, ticker=ticker)
-                
-                response = requests.get(url)
-                data = response.json()
-                
-                x = pd.DataFrame(data, columns=['date', x])
-                x["date"] = pd.DatetimeIndex(x["date"])
-                x['date'] = pd.PeriodIndex(x.date, freq='Q')
-                stockList.append(x)
-                
-            df_outer = stockList[0].merge(stockList[1], on='date', how='outer').merge(stockList[2], on='date', how='outer').merge(stockList[3], on='date', how='outer').merge(stockList[4], on='date', how='outer').merge(stockList[5], on='date', how='outer')
-            df_outer['ticker'] = ticker
-            df_outer.drop(df_outer[df_outer["date"] <'2018Q1'].index, inplace=True)
-            df_outer['date'] = df_outer['date'].apply(lambda x: x.strftime('%Y-%m-%d'))
-
-            df_outer[['pricetoearnings']] = df_outer[['pricetoearnings']].fillna(value=0)
-            df_outer = df_outer.dropna()
-            print("df_outer_1", df_outer)
-            
-            for i, row in df_outer.iterrows():
-                stockTicker = stock.objects.get(Symbol=ticker)
-                financialRatios.objects.create(ticker=stockTicker, date=row['date'], assetturnover=row['assetturnover'], quickratio=row['quickratio'],
-                                            roe=row['roe'], pricetoearnings=row['pricetoearnings'], dividendyield=row['dividendyield'], debttoequity=row['debttoequity'])
-        return None
-
-
 class getStockData(views.APIView):
     
     def get(self, request, *args, **kwargs):
@@ -90,24 +50,7 @@ class getStockData(views.APIView):
         serializer = finacialRatiosSerializer(fianacial_ratio, many=True)
         return Response(serializer.data)
         
-    def post(self, request, *args, **kwargs):
-        ticker_list = request.data.get('ticker_list')
-        name_list = request.data.get('name_list')
-        industry_list = request.data.get('industry_list')
-        sector = request.data.get('sector')
-        for Symbol, Name, Industry in zip(ticker_list, name_list, industry_list):
-            print(Symbol)
-            print(sector)
-            stock.objects.create(Symbol=Symbol, Sector=sector,
-                                 Name=Name, Industry=Industry)
-        return None
-        
 
-# test data for getStockProfData
-# {
-#     "ticker_list": ["AAPL", "IBM", "MSFT", "V", "INTC", "PYPL"],
-#     "date": "2021-12-01"
-# }
 class getStockProfData(views.APIView):   
     def post(self, request, format=None):
         ticker_list = request.data.get('ticker_list')
@@ -137,6 +80,15 @@ class getStockProfData(views.APIView):
         lof.fit(data_frame[columns])
         lof_scores = -lof.negative_outlier_factor_
         data_frame['lof_score'] = lof_scores
+        temp_outlierList = []
+        for index, row in data_frame.iterrows():
+            if row['lof_score'] > 1.5:
+                temp_outlierList.append(row['ticker'])
+        outlierList = []
+        for ticker_list in temp_outlierList:
+            clusteredStocks = MY_stock.objects.filter(Symbol=ticker_list)
+            serializer = MY_stockSerializer(clusteredStocks, many=True)
+            outlierList.append(serializer.data[0])
         data_frame.drop(data_frame[data_frame["lof_score"] > 1.5].index, inplace=True)
         data_frame = data_frame.reset_index(drop=True)
         pd.set_option('display.max_rows', None)
@@ -163,7 +115,6 @@ class getStockProfData(views.APIView):
         print(lists)
         clusteringList=[]
         for ticker_list in lists:
-            print("\n",ticker_list)
             clusteredStocks = MY_stock.objects.filter(Symbol__in=ticker_list) 
             serializer = MY_stockSerializer(clusteredStocks, many=True)
             clusteringList.append(serializer.data)
@@ -171,36 +122,12 @@ class getStockProfData(views.APIView):
         print("clusteringList", clusteringList)
         content = {
             'status': 1,
-            'data': clusteringList,
+            'portfolio': clusteringList,
+            'outlier': outlierList
 
         }
         return Response(content)
     
-
-class getIndustryTicker(views.APIView):
-    def get(self, request, *args, **kwargs):
-        sector = self.kwargs['sector']
-        url = "https://financialmodelingprep.com/api/v3/stock-screener?marketCapMoreThan=2000000000&isEtf=false&isActivelyTrading=True&sector={sector}&exchange=NASDAQ&limit=500&apikey=ae939e4358f7c5e3f91ed3594ba67d1b"
-        url = url.format(sector=sector)
-        response = requests.get(url)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
-        sector_data=response.json()
-        symbolList = []
-        NameList = []
-        industryList = []
-        for obj in sector_data:
-            symbolList.append(obj['symbol'])
-            NameList.append(obj['companyName'])
-            industryList.append(obj['industry'])
-        symbolList = json.dumps(symbolList)
-        NameList = json.dumps(NameList)
-        industryList = json.dumps(industryList)
-        print(symbolList, "\n")
-        print(NameList, "\n")
-        print(industryList, "\n")
-        
-        return None
-    
-
 class MY_getFinancialRatiosData(views.APIView):
     def get(self, request, *args, **kwargs):
         url = 'https://www.klsescreener.com/v2/screener/quote_results'
@@ -258,7 +185,8 @@ class MY_getFinancialRatiosData(views.APIView):
 
 class MY_getStockPrice (views.APIView):
     def get(self, request, *args, **kwargs):
-        code_list = ['0091','7251','2739','7045','5255','5199','5071','5210','3042','7293','5132','7277','5141','5257','7228','7259']
+        code_list = [
+            "0091", "7251", "2739", "7045", "5255", "5199", "5071", "5210", "3042", "7293", "5132", "7277", "5141", "5257", "7228", "7250", "5186", "5133", "7108", "7158", "5142", "5115", "0219", "5243", "4324", "7164", "7253", "5279", "5256", "5218"]
 
 
         for Symbol in code_list:
