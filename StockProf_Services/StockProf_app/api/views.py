@@ -2,7 +2,7 @@ import requests
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from StockProf_app.models import  MY_stock, MY_financialRatios, MY_stockPrice
-from StockProf_app.api.serializer import MY_finacial_ratiosSerializer, MY_stockSerializer, MY_stockPriceSerializer
+from StockProf_app.api.serializer import MY_finacialRatiosSerializer, MY_stockSerializer, MY_stockPriceSerializer
 from rest_framework import views
 import pandas as pd
 from datetime import datetime as dt
@@ -18,17 +18,25 @@ import datetime
 
 class filterStock(APIView):
     def get(self, request, *args, **kwargs):
-        sector = self.kwargs['sector']
-        stocks = MY_stock.objects.filter(Category=sector)
+        Category = self.kwargs['Category']
+        stocks = MY_stock.objects.filter(Category=Category)
         serializer = MY_stockSerializer(stocks, many=True)
         return Response(serializer.data)
     
     def delete(self, request, *args, **kwargs):
-        sector = self.kwargs['sector']
-        stocks = stock.objects.filter(Sector=sector)
+        Category = self.kwargs['Category']
+        stocks = MY_stock.objects.filter(Category=Category)
         stocks.delete()
         return None
 
+class filterFinancialRatio(APIView):
+    def get(self, request, *args, **kwargs):
+        Category = self.kwargs['ticker']
+        stock_object = MY_stock.objects.filter(Category=Category)
+        print("stock_object", stock_object)
+        fianacial_ratio = MY_financialRatios.objects.filter(ticker__in=stock_object)
+        serializer = MY_finacialRatiosSerializer(fianacial_ratio, many=True)
+        return Response(serializer.data)    
     
 class stockList(APIView):
     def get(self, request, format=None):
@@ -36,14 +44,12 @@ class stockList(APIView):
         serializer = MY_stockSerializer(stocks, many=True)
         return Response(serializer.data)
     
-class getStockData(views.APIView):
-    
+class getStockPriceData(views.APIView):
     def get(self, request, *args, **kwargs):
         ticker = self.kwargs['ticker']
-        stock_object = stock.objects.filter(Symbol=ticker)
-        print("stock_object", stock_object)
-        fianacial_ratio = financialRatios.objects.filter(ticker__in=stock_object)
-        serializer = finacialRatiosSerializer(fianacial_ratio, many=True)
+        stock_object = MY_stock.objects.filter(Symbol=ticker)
+        fianacial_ratio = MY_financialRatios.objects.filter(ticker__in=stock_object)
+        serializer = MY_finacialRatiosSerializer(fianacial_ratio, many=True)
         return Response(serializer.data)
         
 
@@ -53,7 +59,7 @@ class getStockProfData(views.APIView):
         stockTicker = MY_stock.objects.filter(Symbol__in=ticker_list)
         data = MY_financialRatios.objects.filter(ticker__in=stockTicker)
         print(data)
-        data_frame = pd.DataFrame((MY_finacial_ratiosSerializer(data, many=True)).data)
+        data_frame = pd.DataFrame((MY_finacialRatiosSerializer(data, many=True)).data)
         pd.set_option('display.max_rows', None)
         print("data_frame\n", data_frame)
         data_frame=data_frame.drop(columns=['id'])
@@ -120,13 +126,19 @@ class getStockProfData(views.APIView):
         return Response(content)
     
 class MY_getFinancialRatiosData(views.APIView):
-    def get(self, request, *args, **kwargs):
+    def get(self, request, format=None):
+        stocks = MY_stock.objects.all()
+        fianacial_ratio = MY_financialRatios.objects.filter(ticker__in=stocks)
+        serializer = MY_finacialRatiosSerializer(fianacial_ratio, many=True)
+        return Response(serializer.data)
+    
+    def post(self, request, *args, **kwargs):
         url = 'https://www.klsescreener.com/v2/screener/quote_results'
         header = {
             "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.75 Safari/537.36",
             "X-Requested-With": "XMLHttpRequest"
         }
-        form_data = {'getquote': '1', 'board': '1', 'sector': '42'}
+        form_data = {'getquote': '1', 'board': '1', 'sector': '48'}
         server = requests.post(url, data=form_data, headers=header)
         output = server.text
         filtered_data = pd.read_html(output)
@@ -175,7 +187,7 @@ class MY_getFinancialRatiosData(views.APIView):
         return None
 
 class MY_getStockPrice (views.APIView):
-    def get(self, request, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
         code_list = [
             "0091", "7251", "2739", "7045", "5255", "5199", "5071", "5210", "3042", "7293", "5132", "7277", "5141", "5257", "7228", "7250", "5186", "5133", "7108", "7158", "5142", "5115", "0219", "5243", "4324", "7164", "7253", "5279", "5256", "5218"]
 
