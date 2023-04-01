@@ -1,6 +1,15 @@
 <template>
   <div class="home">
-
+    <div class="field has-addons">
+      <div class="control">
+        <input class="input" type="text" placeholder="Find a repository">
+      </div>
+      <div class="control">
+        <a class="button is-info">
+          Search
+        </a>
+    </div>
+    </div>
      <div class="dropdown">
       <button
         class="btn btn-primary dropdown-toggle"
@@ -11,22 +20,15 @@
       </button>
       <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1" role="menu">
         <li v-for="option in options" :key="option">
-          <a class="dropdown-item" @click="value = option; filterStock()" href="javascript:void(0)">{{ option }}</a>
+          <a class="dropdown-item"   @click="value = option; filterStock()" href="javascript:void(0)">{{ option }}</a>
         </li>
       </ul>
     </div>
     <button to="portfolio" @click="navigateToPortfolio" type="button"  class="btn btn-primary">Generate Portfolio</button> 
 
     <div class="box">
-      <!-- <div
-        v-for="stock in stocks"
-        v-bind:key="stock.id"
-      >
-        <div class="is-size-4">{{stock.Symbol}} {{ stock.Category }}</div>
-        <router-link v-bind:to="stock.get_absolute_url" class="button is-dark mt-4">View details</router-link>
-      </div> -->
     <div>
-        <table class="table">
+      <table class="table table-striped table-bordered table-sm">
         <thead>
           <tr>
             <th class="text-center" scope="col">Name</th>
@@ -42,22 +44,48 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="(stock, index) in stocks" :key="index">
-            <td scope="row">{{ stock.Name }}</td>
-            <td scope="row">{{ stock.Symbol }}</td>
-            <td scope="row">{{ stock.Category }}</td>
-            <td scope="row">{{ financialRatio[index].assetturnover }}</td>
-            <td scope="row">{{ financialRatio[index].quickratio }}</td>
-            <td scope="row">{{ financialRatio[index].debttoequity }}</td>
-            <td scope="row">{{ financialRatio[index].roe }}</td>
-            <td scope="row">{{ financialRatio[index].dividendyield }}</td>
-            <td scope="row">{{ financialRatio[index].pricetoearnings }}</td>
-            <td scope="row"><router-link v-bind:to="stock.get_absolute_url" class="button is-dark mt-4">View Chart</router-link></td>
+          <tr v-for="(financialRatio, index) in financialRatio" :key="index">
+            <td scope="row">{{ this.stocks[index].Name }}</td>
+            <td scope="row">{{ this.stocks[index].Symbol }}</td>
+            <td scope="row">{{ this.stocks[index].Category }}</td>
+            <td scope="row">{{ financialRatio[0].assetturnover }}</td>
+            <td scope="row">{{ financialRatio[0].quickratio }}</td>
+            <td scope="row">{{ financialRatio[0].debttoequity }}</td>
+            <td scope="row">{{ financialRatio[0].roe }}</td>
+            <td scope="row">{{ financialRatio[0].dividendyield }}</td>
+            <td scope="row">{{ financialRatio[0].pricetoearnings }}</td>
+            <td scope="row"><router-link v-bind:to="this.stocks[index].get_absolute_url" class="button is-dark mt-4">View Chart</router-link></td>
           </tr>
         </tbody>
       </table>
+      <nav class="pagination" role="navigation" aria-label="pagination">
+    <a class="pagination-previous" @click="loadPrevious()">Previous</a>
+    <a class="pagination-next" @click="loadNext()">Next page</a>
+    <ul class="pagination-list">
+      <li>
+        <a class="pagination-link" aria-label="Goto page 1">1</a>
+      </li>
+      <li>
+        <span class="pagination-ellipsis">&hellip;</span>
+      </li>
+      <li>
+        <a class="pagination-link" aria-label="Goto page 45">45</a>
+      </li>
+      <li>
+        <a class="pagination-link is-current" aria-label="Page 46" aria-current="page">46</a>
+      </li>
+      <li>
+        <a class="pagination-link" aria-label="Goto page 47">47</a>
+      </li>
+      <li>
+        <span class="pagination-ellipsis">&hellip;</span>
+      </li>
+      <li>
+        <a class="pagination-link" aria-label="Goto page 86">86</a>
+      </li>
+    </ul>
+  </nav>
     </div>
-    
     </div>
   </div>
 </template>
@@ -72,8 +100,12 @@ export default {
       financialRatio:[],
       selectedStocks: [],
       options: new Set([""]),
-      value: ''
+      value: '',
+      currentPage:  1,
     }
+  },
+  components: {
+      // Vuetable
   },
   mounted() {
     this.getStocks()
@@ -81,17 +113,40 @@ export default {
     document.title = 'Home' + ' | Djacket'
   },
   methods: {
+    loadNext(){
+      this.currentPage +=1
+      if (this.value){
+        this.filterStock()
+      }
+      else
+        this.getStocks()
+    },
+    loadPrevious(){
+      if (this.currentPage<=1){
+        this.currentPage =1
+      }
+      else 
+        this.currentPage -= 1
+      if (this.value) {
+        this.filterStock()
+      }
+      else
+        this.getStocks()
+    },
     async getStocks() {
       await axios
-        .get('api/stocks')
-        .then(response1 => {
-          return axios.get('api/financial-ratio')
-          .then(response2 => {
-            this.stocks = response1.data,
-            this.financialRatio = response2.data
-            const Category = response1.data.map(Category => Category.Category);
+        .get(`api/stocks/?page=${this.currentPage}`)
+        .then(response => {
+          return axios.get(`api/stocks/?disable_pagination=true`)
+          .then(response1 => {
+            this.stocks = response.data.results
+            const financialRatio = response.data.results.map(financial_ratios => financial_ratios.financial_ratios);
+            this.financialRatio = financialRatio 
+            const Category = response1.data.map(Category => Category.Category.split(',')[0].trim());
             Category.forEach(Category => this.options.add(Category));
-            })
+            const symbols = response1.data.result.map(symbol => symbol.Symbol);
+            this.selectedStocks = symbols
+          })
         })
         .catch(error => {
           console.log(error)
@@ -100,12 +155,13 @@ export default {
     },
     async filterStock(){
       await axios
-        .get(`api/stocks/${this.value}`)
-        .then(response1 => {
-          return axios.get(`api/stocks/${this.value}/financial-ratio`)
-            .then(response2 => {
-              this.stocks = response1.data,
-              this.financialRatio = response2.data
+        .get(`api/stocks/?page=${this.currentPage}&search=${this.value}`)
+        .then(response => {
+          return axios.get(`api/stocks/?disable_pagination=true&search=${this.value}`)
+            .then(response1 => {
+              this.stocks = response.data.results
+              const financialRatio = response.data.results.map(financial_ratios => financial_ratios.financial_ratios);
+              this.financialRatio = financialRatio
               const symbols = response1.data.map(symbol => symbol.Symbol);
               this.selectedStocks = symbols
             })
