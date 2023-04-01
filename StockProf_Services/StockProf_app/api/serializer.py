@@ -8,6 +8,7 @@ class MY_finacialRatiosSerializer(serializers.ModelSerializer):
 
 
 class MY_stockSerializer(serializers.ModelSerializer):
+    financial_ratios = MY_finacialRatiosSerializer(many=True, read_only=True)
     class Meta:
         model = MY_stock
         fields = (
@@ -15,7 +16,8 @@ class MY_stockSerializer(serializers.ModelSerializer):
             "Symbol",
             "Name",
             "get_absolute_url",
-            "Category"
+            "Category",
+            'financial_ratios'
         )
 
 
