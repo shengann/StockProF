@@ -16,7 +16,8 @@ import time
 import datetime
 from rest_framework.pagination import PageNumberPagination
 from rest_framework import viewsets
-
+from django.shortcuts import get_object_or_404
+from rest_framework import filters
 
 class filterStock(APIView):
     def get(self, request, *args, **kwargs):
@@ -43,10 +44,31 @@ class filterFinancialRatio(APIView):
 
 class StockPagination(PageNumberPagination):
     page_size = 20
+    
 class stockList(viewsets.ModelViewSet):
     pagination_class= StockPagination
     serializer_class = MY_stockSerializer
-    queryset = MY_stock.objects.all()
+    queryset = MY_stock.objects.all().order_by('id')
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ['Symbol', 'Name','Category']
+    ordering_fields = ['Symbol', 'Symbol', 'Category']
+    
+    def list(self, request):
+        if request.query_params.get('disable_pagination'):
+            self.pagination_class = None
+        else:
+            self.pagination_class = StockPagination
+
+        queryset = self.filter_queryset(self.get_queryset())
+        page = self.paginate_queryset(queryset)
+
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+    
     
 class getStockPriceData(views.APIView):
     def get(self, request, *args, **kwargs):
