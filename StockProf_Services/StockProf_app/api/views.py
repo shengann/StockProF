@@ -1,3 +1,4 @@
+import json
 import requests
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -18,6 +19,10 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework import viewsets
 from django.shortcuts import get_object_or_404
 from rest_framework import filters
+from rest_framework_csv.renderers import CSVRenderer
+from django.http import HttpResponse
+from django.http import FileResponse
+from django.core.files.base import ContentFile
 
 class filterStock(APIView):
     def get(self, request, *args, **kwargs):
@@ -84,10 +89,8 @@ class getStockProfData(views.APIView):
         ticker_list = request.data.get('ticker_list')
         stockTicker = MY_stock.objects.filter(Symbol__in=ticker_list)
         data = MY_financialRatios.objects.filter(ticker__in=stockTicker)
-        print(data)
         data_frame = pd.DataFrame((MY_finacialRatiosSerializer(data, many=True)).data)
         pd.set_option('display.max_rows', None)
-        print("data_frame\n", data_frame)
         data_frame=data_frame.drop(columns=['id'])
         
         scaler = MinMaxScaler()
@@ -97,7 +100,6 @@ class getStockProfData(views.APIView):
         data_frame= data_frame['ticker']
         data_frame = pd.concat([df_norm, data_frame], axis=1)
         pd.set_option('display.max_rows', None)
-        print("data_frame\n", data_frame)
         
         lof = LocalOutlierFactor()
         lof.fit(data_frame[columns])
@@ -115,34 +117,28 @@ class getStockProfData(views.APIView):
         data_frame.drop(data_frame[data_frame["lof_score"] > 1.5].index, inplace=True)
         data_frame = data_frame.reset_index(drop=True)
         pd.set_option('display.max_rows', None)
-        print("data_frame_lof\n", data_frame)
 
         data_frame_clustering = data_frame.drop(columns=['lof_score','ticker'])
         em_clustering = BayesianGaussianMixture(n_components=3)
         em_clustering.fit(data_frame_clustering)
         labels = em_clustering.predict(data_frame_clustering)
-        print("labels", labels)
         data_frame['label'] = labels
         data_frame = data_frame.drop(columns=['assetturnover', 'quickratio', 'debttoequity', 'roe', 'dividendyield', 'pricetoearnings', 'lof_score'])
         pd.set_option('display.max_rows', None)
-        print("data_frame_clustering\n", data_frame)
         
         groups = data_frame.groupby('label')
         lists = []
-
 
         for name, group in groups:
             lists.append(group['ticker'].tolist())
 
         # Print the list of lists
-        print(lists)
         clusteringList=[]
         for ticker_list in lists:
             clusteredStocks = MY_stock.objects.filter(Symbol__in=ticker_list) 
             serializer = MY_stockSerializer(clusteredStocks, many=True)
             clusteringList.append(serializer.data)
         
-        print("clusteringList", clusteringList)
         content = {
             'status': 1,
             'portfolio': clusteringList,
@@ -287,8 +283,6 @@ class MY_getComparison (views.APIView):
                         percent_change = (final_list[i] - initial_list[i]) / initial_list[i] * 100.0
                         percent_changes.append(percent_change)
                         
-
-                print(percent_changes)
                 average = sum(percent_changes) / len(percent_changes)
                 capital_gain_loss_list.append(average)
             
@@ -297,3 +291,41 @@ class MY_getComparison (views.APIView):
                 'Portfolio': capital_gain_loss_list
             }
             return JsonResponse(data)
+
+class getBoxPlotData(views.APIView):
+    def post(self, request, *args, **kwargs):
+        portfolio_list = request.data.get('portfolio_list')
+        boxPlot_df = pd.DataFrame(columns=['col1'])
+        for index, value in enumerate(portfolio_list):
+            ticker_list = value
+            stockTicker = MY_stock.objects.filter(Symbol__in=ticker_list)
+            data = MY_financialRatios.objects.filter(ticker__in=stockTicker)
+            data_frame = pd.DataFrame((MY_finacialRatiosSerializer(data, many=True)).data)
+            pd.set_option('display.max_rows', None)
+            data_frame = data_frame.drop(columns=['id','ticker'])
+            scaler = MinMaxScaler()
+            columns = ['assetturnover', 'quickratio', 'debttoequity','roe', 'dividendyield', 'pricetoearnings']
+            df_norm = pd.DataFrame(scaler.fit_transform(data_frame[columns]))
+            df_norm.set_axis(columns, axis=1, inplace=True)
+            # data_frame = pd.concat([df_norm, data_frame], axis=1)
+            print(df_norm)
+            # data_frame = data_frame.transpose()
+            data_frame[['assetturnover', 'quickratio', 'debttoequity', 'roe', 'dividendyield', 'pricetoearnings']] = data_frame[['assetturnover', 'quickratio','debttoequity', 'roe', 'dividendyield', 'pricetoearnings']].apply(pd.to_numeric)
+            new_columns = {}
+            for i, col in enumerate(df_norm.columns):
+                new_columns[col] = '{}_{}'.format(col, index)
+
+            df_norm = df_norm.rename(columns=new_columns)
+            print(df_norm.info())
+            quartiles = df_norm.describe(percentiles=[.25, .5, .75]).loc[['25%', '50%', '75%','min','max']]
+            print(quartiles.T)
+            boxPlot_df = pd.concat([boxPlot_df, quartiles], axis=1)
+
+        boxPlot_df = boxPlot_df.drop(columns=['col1'])
+
+        boxPlot_df =boxPlot_df.T
+
+        boxPlot_df['name'] = boxPlot_df.index.values
+        boxPlot_df = boxPlot_df.reset_index()
+
+        return Response()
