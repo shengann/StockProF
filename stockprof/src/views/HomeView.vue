@@ -27,6 +27,7 @@
     <button to="portfolio" @click="navigateToPortfolio" type="button"  class="btn btn-primary">Generate Portfolio</button> 
 
     <div class="box">
+    <p>{{this.total_stocks}} stocks found.</p>
     <div>
       <table class="table table-striped table-bordered table-sm">
         <thead>
@@ -102,6 +103,7 @@ export default {
       options: new Set([""]),
       value: '',
       currentPage:  1,
+      total_stocks: 0
     }
   },
   components: {
@@ -144,8 +146,9 @@ export default {
             this.financialRatio = financialRatio 
             const Category = response1.data.map(Category => Category.Category.split(',')[0].trim());
             Category.forEach(Category => this.options.add(Category));
-            const symbols = response1.data.result.map(symbol => symbol.Symbol);
-            this.selectedStocks = symbols
+            // const symbols = response1.data.result.map(symbol => symbol.Symbol);
+            // this.selectedStocks = symbols
+            this.total_stocks= response1.data.length
           })
         })
         .catch(error => {
@@ -164,6 +167,7 @@ export default {
               this.financialRatio = financialRatio
               const symbols = response1.data.map(symbol => symbol.Symbol);
               this.selectedStocks = symbols
+              this.total_stocks = response1.data.length
             })
         })
         .catch(error => {
