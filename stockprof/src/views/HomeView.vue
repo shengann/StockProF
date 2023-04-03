@@ -162,6 +162,7 @@ export default {
         .then(response => {
           return axios.get(`api/stocks/?disable_pagination=true&search=${this.value}`)
             .then(response1 => {
+              this.currentPage =1
               this.stocks = response.data.results
               const financialRatio = response.data.results.map(financial_ratios => financial_ratios.financial_ratios);
               this.financialRatio = financialRatio
