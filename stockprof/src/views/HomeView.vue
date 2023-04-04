@@ -9,7 +9,6 @@
           Search
         </a>
     </div>
-    </div>
      <div class="dropdown">
       <button
         class="btn btn-primary dropdown-toggle"
@@ -25,7 +24,7 @@
       </ul>
     </div>
     <button to="portfolio" @click="navigateToPortfolio" type="button"  class="btn btn-primary">Generate Portfolio</button> 
-
+    </div>
     <div class="box">
     <p>{{this.total_stocks}} stocks found.</p>
     <div>
