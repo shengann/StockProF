@@ -36,27 +36,52 @@
           </table>
         </div>
 
-        
-        <div
-            v-for="stockList in clusteredStocks"
-            v-bind:key="stockList.id"
-        >
-            <div class="card">
-                <div class="card-header">
-                    Portfolio
+        <div id="plot" class="my-6"></div> 
+
+        <div class="columns">
+            <div class="column is-one-third"
+            v-for="(stockList,index) in clusteredStocks"
+            v-bind:key="stockList.id">
+                <div>
+                    <h1 class="title">Portfolio {{index+1}}</h1>
+                    <table class="table table-striped table-bordered table-sm">
+                    <thead>
+                    <tr>
+                        <th class="text-center" scope="col">Name</th>
+                        <th class="text-center" scope="col">Code</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr v-for="stock in stockList" v-bind:key="stock.id">
+                        <td scope="row">{{ stock.Name }}</td>
+                        <td scope="row">{{ stock.Symbol }}</td>
+                    </tr>
+                    </tbody>
+                    </table>
                 </div>
-                <ul class="list-group list-group-flush">
-                    <div
-                        v-for="stock in stockList"
-                        v-bind:key="stock.id"
-                    >   
-                        <li  class="list-group-item">{{ stock.Symbol }}</li>
+                <div class="field">
+                    <label class="label">Portfolio Type</label>
+                    <div class="control">
+                        <div class="select is-rounded">
+                            <select v-model="portfolioTypeOptions[index]" @change="showInput(index)">
+                                <option value="Aggressive">Aggressive</option>
+                                <option value="Average">Average</option>
+                                <option value="Defensive">Defensive</option>
+                                <option value=Custom>Custom</option>
+                            </select>
+                        </div>
                     </div>
-                </ul>
+                </div>
+                <input 
+                    v-if="showTextInput[index]"
+                    v-model="portfolioTypeOptions[index]" 
+                    class="input my-4" type="text" 
+                    placeholder="Portfolio type"
+                >
+            
             </div>
         </div>
-        <div id="plot"></div> 
-    </div>
+    </div> 
 </template>
 
 <script>
@@ -73,7 +98,9 @@ export default {
             outlierFinancialratio: [],
             clusteredStocksSymbols :[], 
             outlierStocksSymbols : [],
-            boxPlotData: []
+            boxPlotData: [],
+            portfolioTypeOptions: [],
+            showTextInput: []
         }
     },
     mounted() {
@@ -82,11 +109,18 @@ export default {
         document.title = 'Portfolio' + ' | Djacket'
     },
     methods: {
+        showInput(index) {
+            if (this.portfolioTypeOptions[index] !== 'Aggressive' && this.portfolioTypeOptions[index] !== 'Average' && this.portfolioTypeOptions[index] !== 'Defensive'){
+                this.showTextInput[index] = true;
+                if (this.portfolioTypeOptions[index] == 'Custom'){
+                    this.portfolioTypeOptions[index] = ''
+                }
+            }
+        },
         async getPortfolio() {
             await axios
                 .post('api/stockprof',{
                     "ticker_list":this.stocks,
-                    // "date":"2022-09-30"
                 })
                 .then(response => {
                     this.clusteredStocks = response.data.portfolio
@@ -96,6 +130,7 @@ export default {
                     for (let i=0;i< response.data.portfolio.length;i++) {
                         const clustered_symbols = response.data.portfolio[i].map(symbol => symbol.Symbol);
                         this.clusteredStocksSymbols.push(clustered_symbols)
+                        this.showTextInput.push(false)
                     }
                     const outlier_symbols = response.data.outlier.map(symbol => symbol.Symbol);
                     this.outlierStocksSymbols = outlier_symbols
@@ -209,9 +244,6 @@ export default {
                         .attr("stroke", "black")
                         .style("width", 80)
                 })
-                        
-                    
-                
                 .catch(error => {
                     console.log(error)
                 }
