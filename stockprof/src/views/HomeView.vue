@@ -157,6 +157,7 @@ export default {
         )
     },
     async filterStock(){
+      this.currentPage = 1
       await axios
         .get(`api/stocks/?page=${this.currentPage}&search=${this.value}`)
         .then(response => {

@@ -317,7 +317,7 @@ class getBoxPlotData(views.APIView):
 
             df_norm = df_norm.rename(columns=new_columns)
             print(df_norm.info())
-            quartiles = df_norm.describe(percentiles=[.25, .5, .75]).loc[['25%', '50%', '75%','min','max']]
+            quartiles = df_norm.describe(percentiles=[.25, .5, .75]).loc[['25%', '50%', '75%']]
             print(quartiles.T)
             boxPlot_df = pd.concat([boxPlot_df, quartiles], axis=1)
 
@@ -327,5 +327,16 @@ class getBoxPlotData(views.APIView):
 
         boxPlot_df['name'] = boxPlot_df.index.values
         boxPlot_df = boxPlot_df.reset_index()
+        boxPlot_df = boxPlot_df.drop(columns=['index'])
+        boxPlot_df = boxPlot_df.rename(columns={"25%": "q1", "50%": "q2","75%":"q3"})
+        boxPlot_df['iqr'] = boxPlot_df['q3'] - boxPlot_df['q1']
+        boxPlot_df = boxPlot_df.astype(str)
+        print(boxPlot_df)
+        boxPlot_list = boxPlot_df.values.tolist()
 
-        return Response()
+        boxPlot_list = [{"name": row[3], "q1": row[0], "q2": row[1], "q3": row[2], "iqr": row[4]} for row in boxPlot_list]
+              
+        json_data = json.dumps(boxPlot_list)
+        json_data = json.loads(json_data)
+
+        return Response(json_data)
