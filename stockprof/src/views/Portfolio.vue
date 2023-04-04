@@ -2,7 +2,41 @@
 
     <div class="page-portfolio">   
         <button  @click="getComparison" type="button"  class="btn btn-primary">Capital Gain/Lose</button> 
+        <div v-if="outlierStocks.length>1">
+            <h1 class="title">Outlier Stocks</h1>
 
+            <table class="table table-striped table-bordered table-sm">
+            <thead>
+              <tr>
+                <th class="text-center" scope="col">Name</th>
+                <th class="text-center" scope="col">Code</th>
+                <th class="text-center" scope="col">Total asset turnover</th>
+                <th class="text-center" scope="col">Cash ratio</th>
+                <th class="text-center" scope="col">Debt ratio</th>
+                <th class="text-center" scope="col">Return on equity </th>
+                <th class="text-center" scope="col">Dividend yield</th>
+                <th class="text-center" scope="col">Price earnings ratio </th>
+                <th class="text-center" scope="col">Capital Gain/Loss </th>
+
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(financialRatio, index) in outlierFinancialratio" :key="index">
+                <td scope="row">{{ this.outlierStocks[index].Name }}</td>
+                <td scope="row">{{ this.outlierStocks[index].Symbol }}</td>
+                <td scope="row">{{ financialRatio[0].assetturnover }}</td>
+                <td scope="row">{{ financialRatio[0].quickratio }}</td>
+                <td scope="row">{{ financialRatio[0].debttoequity }}</td>
+                <td scope="row">{{ financialRatio[0].roe }}</td>
+                <td scope="row">{{ financialRatio[0].dividendyield }}</td>
+                <td scope="row">{{ financialRatio[0].pricetoearnings }}</td>
+                <td scope="row"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        
         <div
             v-for="stockList in clusteredStocks"
             v-bind:key="stockList.id"
@@ -36,6 +70,7 @@ export default {
             stocks: this.$route.query.selectedStocks,
             clusteredStocks: [],
             outlierStocks: [],
+            outlierFinancialratio: [],
             clusteredStocksSymbols :[], 
             outlierStocksSymbols : [],
             boxPlotData: []
@@ -56,11 +91,12 @@ export default {
                 .then(response => {
                     this.clusteredStocks = response.data.portfolio
                     this.outlierStocks = response.data.outlier
+                    const outlierFinancialratio = response.data.outlier.map(financial_ratios => financial_ratios.financial_ratios);
+                    this.outlierFinancialratio = outlierFinancialratio
                     for (let i=0;i< response.data.portfolio.length;i++) {
                         const clustered_symbols = response.data.portfolio[i].map(symbol => symbol.Symbol);
                         this.clusteredStocksSymbols.push(clustered_symbols)
                     }
-                    console.log("this.clusteredStocksSymbols", this.clusteredStocksSymbols)
                     const outlier_symbols = response.data.outlier.map(symbol => symbol.Symbol);
                     this.outlierStocksSymbols = outlier_symbols
                     this.getBoxPlotData()
