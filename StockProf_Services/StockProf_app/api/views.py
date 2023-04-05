@@ -307,13 +307,10 @@ class getBoxPlotData(views.APIView):
             columns = ['assetturnover', 'quickratio', 'debttoequity','roe', 'dividendyield', 'pricetoearnings']
             df_norm = pd.DataFrame(scaler.fit_transform(data_frame[columns]))
             df_norm.set_axis(columns, axis=1, inplace=True)
-            # data_frame = pd.concat([df_norm, data_frame], axis=1)
-            print(df_norm)
-            # data_frame = data_frame.transpose()
             data_frame[['assetturnover', 'quickratio', 'debttoequity', 'roe', 'dividendyield', 'pricetoearnings']] = data_frame[['assetturnover', 'quickratio','debttoequity', 'roe', 'dividendyield', 'pricetoearnings']].apply(pd.to_numeric)
             new_columns = {}
             for i, col in enumerate(df_norm.columns):
-                new_columns[col] = '{}_{}'.format(col, index)
+                new_columns[col] = '{}_{}'.format(col, index+1)
 
             df_norm = df_norm.rename(columns=new_columns)
             print(df_norm.info())
@@ -331,7 +328,7 @@ class getBoxPlotData(views.APIView):
         boxPlot_df = boxPlot_df.rename(columns={"25%": "q1", "50%": "q2","75%":"q3"})
         boxPlot_df['iqr'] = boxPlot_df['q3'] - boxPlot_df['q1']
         boxPlot_df = boxPlot_df.astype(str)
-        print(boxPlot_df)
+        boxPlot_df =  boxPlot_df.sort_values(by=['name'])
         boxPlot_list = boxPlot_df.values.tolist()
 
         boxPlot_list = [{"name": row[3], "q1": row[0], "q2": row[1], "q3": row[2], "iqr": row[4]} for row in boxPlot_list]

@@ -21,4 +21,5 @@ urlpatterns = [
     path('api/', include('StockProf_app.api.urls')),
     path('api/', include('djoser.urls')),
     path('api/', include('djoser.urls.authtoken')),
+    path('api/', include('accInfo.urls')),
 ]

@@ -2,27 +2,86 @@
 
     <div class="page-portfolio">   
         <button  @click="getComparison" type="button"  class="btn btn-primary">Capital Gain/Lose</button> 
+        <div v-if="outlierStocks.length>1">
+            <h1 class="title">Outlier Stocks</h1>
 
-        <div
-            v-for="stockList in clusteredStocks"
-            v-bind:key="stockList.id"
-        >
-            <div class="card">
-                <div class="card-header">
-                    Portfolio
+            <table class="table table-striped table-bordered table-sm">
+            <thead>
+              <tr>
+                <th class="text-center" scope="col">Name</th>
+                <th class="text-center" scope="col">Code</th>
+                <th class="text-center" scope="col">Total asset turnover</th>
+                <th class="text-center" scope="col">Cash ratio</th>
+                <th class="text-center" scope="col">Debt ratio</th>
+                <th class="text-center" scope="col">Return on equity </th>
+                <th class="text-center" scope="col">Dividend yield</th>
+                <th class="text-center" scope="col">Price earnings ratio </th>
+                <th class="text-center" scope="col">Capital Gain/Loss </th>
+
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(financialRatio, index) in outlierFinancialratio" :key="index">
+                <td scope="row">{{ this.outlierStocks[index].Name }}</td>
+                <td scope="row">{{ this.outlierStocks[index].Symbol }}</td>
+                <td scope="row">{{ financialRatio[0].assetturnover }}</td>
+                <td scope="row">{{ financialRatio[0].quickratio }}</td>
+                <td scope="row">{{ financialRatio[0].debttoequity }}</td>
+                <td scope="row">{{ financialRatio[0].roe }}</td>
+                <td scope="row">{{ financialRatio[0].dividendyield }}</td>
+                <td scope="row">{{ financialRatio[0].pricetoearnings }}</td>
+                <td scope="row"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div id="plot" class="my-6"></div> 
+
+        <div class="columns">
+            <div class="column is-one-third"
+            v-for="(stockList,index) in clusteredStocks"
+            v-bind:key="stockList.id">
+                <div>
+                    <h1 class="title">Portfolio {{index+1}}</h1>
+                    <table class="table table-striped table-bordered table-sm">
+                    <thead>
+                    <tr>
+                        <th class="text-center" scope="col">Name</th>
+                        <th class="text-center" scope="col">Code</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr v-for="stock in stockList" v-bind:key="stock.id">
+                        <td scope="row">{{ stock.Name }}</td>
+                        <td scope="row">{{ stock.Symbol }}</td>
+                    </tr>
+                    </tbody>
+                    </table>
                 </div>
-                <ul class="list-group list-group-flush">
-                    <div
-                        v-for="stock in stockList"
-                        v-bind:key="stock.id"
-                    >   
-                        <li  class="list-group-item">{{ stock.Symbol }}</li>
+                <div class="field">
+                    <label class="label">Portfolio Type</label>
+                    <div class="control">
+                        <div class="select is-rounded">
+                            <select v-model="portfolioTypeOptions[index]" @change="showInput(index)">
+                                <option value="Aggressive">Aggressive</option>
+                                <option value="Average">Average</option>
+                                <option value="Defensive">Defensive</option>
+                                <option value=Custom>Custom</option>
+                            </select>
+                        </div>
                     </div>
-                </ul>
+                </div>
+                <input 
+                    v-if="showTextInput[index]"
+                    v-model="portfolioTypeOptions[index]" 
+                    class="input my-4" type="text" 
+                    placeholder="Portfolio type"
+                >
+            
             </div>
         </div>
-        <div id="plot"></div> 
-    </div>
+    </div> 
 </template>
 
 <script>
@@ -36,9 +95,12 @@ export default {
             stocks: this.$route.query.selectedStocks,
             clusteredStocks: [],
             outlierStocks: [],
+            outlierFinancialratio: [],
             clusteredStocksSymbols :[], 
             outlierStocksSymbols : [],
-            boxPlotData: []
+            boxPlotData: [],
+            portfolioTypeOptions: [],
+            showTextInput: []
         }
     },
     mounted() {
@@ -47,20 +109,32 @@ export default {
         document.title = 'Portfolio' + ' | Djacket'
     },
     methods: {
+        showInput(index) {
+            if (this.portfolioTypeOptions[index] !== 'Aggressive' && this.portfolioTypeOptions[index] !== 'Average' && this.portfolioTypeOptions[index] !== 'Defensive'){
+                this.showTextInput[index] = true;
+                if (this.portfolioTypeOptions[index] == 'Custom'){
+                    this.portfolioTypeOptions[index] = ''
+                }
+            }
+            else {
+                this.showTextInput[index] = false;
+            }
+        },
         async getPortfolio() {
             await axios
                 .post('api/stockprof',{
                     "ticker_list":this.stocks,
-                    // "date":"2022-09-30"
                 })
                 .then(response => {
                     this.clusteredStocks = response.data.portfolio
                     this.outlierStocks = response.data.outlier
+                    const outlierFinancialratio = response.data.outlier.map(financial_ratios => financial_ratios.financial_ratios);
+                    this.outlierFinancialratio = outlierFinancialratio
                     for (let i=0;i< response.data.portfolio.length;i++) {
                         const clustered_symbols = response.data.portfolio[i].map(symbol => symbol.Symbol);
                         this.clusteredStocksSymbols.push(clustered_symbols)
+                        this.showTextInput.push(false)
                     }
-                    console.log("this.clusteredStocksSymbols", this.clusteredStocksSymbols)
                     const outlier_symbols = response.data.outlier.map(symbol => symbol.Symbol);
                     this.outlierStocksSymbols = outlier_symbols
                     this.getBoxPlotData()
@@ -173,9 +247,6 @@ export default {
                         .attr("stroke", "black")
                         .style("width", 80)
                 })
-                        
-                    
-                
                 .catch(error => {
                     console.log(error)
                 }
