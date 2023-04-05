@@ -26,7 +26,7 @@
     <button to="portfolio" @click="navigateToPortfolio" type="button"  class="btn btn-primary">Generate Portfolio</button> 
     </div>
     <div class="box">
-    <p>{{this.total_stocks}} stocks found.</p>
+    <h2 class="subtitle">{{this.total_stocks}} stocks found.</h2>
     <div>
       <table class="table table-striped table-bordered table-sm">
         <thead>
