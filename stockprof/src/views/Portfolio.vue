@@ -116,6 +116,9 @@ export default {
                     this.portfolioTypeOptions[index] = ''
                 }
             }
+            else {
+                this.showTextInput[index] = false;
+            }
         },
         async getPortfolio() {
             await axios
