@@ -19,10 +19,6 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework import viewsets
 from django.shortcuts import get_object_or_404
 from rest_framework import filters
-from rest_framework_csv.renderers import CSVRenderer
-from django.http import HttpResponse
-from django.http import FileResponse
-from django.core.files.base import ContentFile
 
 class filterStock(APIView):
     def get(self, request, *args, **kwargs):
@@ -146,7 +142,31 @@ class getStockProfData(views.APIView):
 
         }
         return Response(content)
-    
+
+
+class getPastPortfolioData(views.APIView):
+    def post(self, request, format=None):
+        cluster_list = request.data.get('clusteredStocksSymbols')
+        outlier_list = request.data.get('outlierStocksSymbols')
+        clusteringList = []
+        for ticker_list in cluster_list:
+            clusteredStocks = MY_stock.objects.filter(Symbol__in=ticker_list)
+            serializer = MY_stockSerializer(clusteredStocks, many=True)
+            clusteringList.append(serializer.data)
+        outlierList = []
+        for ticker_list in outlier_list:
+            clusteredStocks = MY_stock.objects.filter(Symbol=ticker_list)
+            serializer = MY_stockSerializer(clusteredStocks, many=True)
+            outlierList.append(serializer.data[0])
+        content = {
+            'status': 1,
+            'portfolio': clusteringList,
+            'outlier': outlierList
+
+        }
+        return Response(content)
+        
+        return None
 class MY_getFinancialRatiosData(views.APIView):
     def get(self, request, format=None):
         stocks = MY_stock.objects.all()
