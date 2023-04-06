@@ -75,7 +75,7 @@ export default {
 
                     localStorage.setItem("token", token)
 
-                    const toPath = this.$route.query.to || '/cart'
+                    const toPath = this.$route.query.to || '/profile'
 
                     this.$router.push(toPath)
                 })
