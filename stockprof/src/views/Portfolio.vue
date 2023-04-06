@@ -110,7 +110,7 @@ export default {
     mounted() {
         this.getPortfolio()
 
-        document.title = 'Portfolio' + ' | Djacket'
+        document.title = 'Portfolio' + ' | StockProF'
     },
     methods: {
         async saveResult(){
@@ -125,6 +125,7 @@ export default {
                 .post('api/save-result',{data})
                 ,then( response =>{
                     conosle.log(response)
+                    this.$router.push('/profile')
                 })
                 .catch( error =>{
                     console.log("error",error)
