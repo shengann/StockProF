@@ -182,7 +182,8 @@ export default {
       this.$router.push({
         name: 'Portfolio',
         query: {
-          selectedStocks: this.selectedStocks
+          selectedStocks: this.selectedStocks,
+          category: this.value
         }
       })
     },

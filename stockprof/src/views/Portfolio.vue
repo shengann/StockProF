@@ -1,9 +1,10 @@
 <template>
 
     <div class="page-portfolio">   
-        <button  @click="getComparison" type="button"  class="btn btn-primary">Capital Gain/Lose</button> 
-        <div v-if="outlierStocks.length>1">
-            <h1 class="title">Outlier Stocks</h1>
+        <!-- <button  @click="getComparison" type="button"  class="btn btn-primary">Capital Gain/Lose</button>  -->
+        <h1 class="title">Sector : {{category}}</h1>
+        <div v-if="outlierStocks.length>1" class="box mt-6">
+            <h2 class="title">Outlier Stocks</h2>
 
             <table class="table table-striped table-bordered table-sm">
             <thead>
@@ -38,12 +39,12 @@
 
         <div id="plot" class="my-6"></div> 
 
-        <div class="columns">
+        <div class="columns box">
             <div class="column is-one-third"
             v-for="(stockList,index) in clusteredStocks"
             v-bind:key="stockList.id">
                 <div>
-                    <h1 class="title">Portfolio {{index+1}}</h1>
+                    <h2 class="title">Portfolio {{index+1}}</h2>
                     <table class="table table-striped table-bordered table-sm">
                     <thead>
                     <tr>
@@ -81,7 +82,7 @@
             
             </div>
         </div>
-        <button  type="button"  @click="saveResult()" class="btn btn-primary">Save Results</button> 
+        <button  type="button"  @click="saveResult()" class="btn btn-primary mt-6">Save Results</button> 
 
     </div> 
 </template>
@@ -95,6 +96,7 @@ export default {
     data() {
         return {
             stocks: this.$route.query.selectedStocks,
+            category: this.$route.query.category,
             clusteredStocks: [],
             outlierStocks: [],
             outlierFinancialratio: [],
@@ -117,6 +119,7 @@ export default {
                 'clusteredStocksSymbols': this.clusteredStocksSymbols,
                 'outlierStocksSymbols': this.outlierStocksSymbols,
                 'portfolioTypeOptions': this.portfolioTypeOptions,
+                'category':this.category
             }
             await axios
                 .post('api/save-result',{data})
