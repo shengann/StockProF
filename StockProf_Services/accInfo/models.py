@@ -13,4 +13,4 @@ class savedResult(models.Model):
     date_created = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):
-        return f"{self.user}"
+        return f"{self.user}\t{self.date_created}"
