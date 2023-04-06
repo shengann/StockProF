@@ -60,10 +60,14 @@
             </tr>
           </tbody>
         </table>
-        <nav class="pagination" role="navigation" aria-label="pagination">
-          <a class="pagination-previous" @click="loadPrevious()">Previous</a>
-          <a class="pagination-next" @click="loadNext()">Next page</a>
-          <ul class="pagination-list">
+        <nav class="pagination is-flex justify-content-between" role="navigation" aria-label="pagination">
+          <div>
+            <a v-if="currentPage>1" class="pagination-previous" @click="loadPrevious()">Previous</a>
+          </div>
+          <div>
+             <a class="pagination-next" @click="loadNext()">Next page</a>
+          </div>
+          <!-- <ul class="pagination-list">
             <li>
               <a class="pagination-link" aria-label="Goto page 1">1</a>
             </li>
@@ -85,7 +89,7 @@
             <li>
               <a class="pagination-link" aria-label="Goto page 86">86</a>
             </li>
-          </ul>
+          </ul> -->
         </nav>
       </div>
     </div>
@@ -113,7 +117,7 @@ export default {
   mounted() {
     this.getStocks()
 
-    document.title = 'Home' + ' | Djacket'
+    document.title = 'Home' + ' | StockProF'
   },
   methods: {
     loadNext() {
