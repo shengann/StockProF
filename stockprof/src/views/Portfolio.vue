@@ -1,7 +1,6 @@
 <template>
 
     <div class="page-portfolio">   
-        <!-- <button  @click="getComparison" type="button"  class="btn btn-primary">Capital Gain/Lose</button>  -->
         <h1 class="title">Sector : {{category}}</h1>
         <div v-if="outlierStocks.length>1" class="box mt-6">
             <h2 class="title">Outlier Stocks</h2>
@@ -123,7 +122,7 @@ export default {
             }
             await axios
                 .post('api/save-result',{data})
-                ,then( response =>{
+                .then( response =>{
                     conosle.log(response)
                     this.$router.push('/profile')
                 })
@@ -160,6 +159,8 @@ export default {
                     const outlier_symbols = response.data.outlier.map(symbol => symbol.Symbol);
                     this.outlierStocksSymbols = outlier_symbols
                     this.getBoxPlotData()
+                    this.getComparison()
+
                 })
                 .catch(error => {
                     console.log(error)
