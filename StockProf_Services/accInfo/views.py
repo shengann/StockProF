@@ -36,4 +36,15 @@ class historyList(APIView):
         serializer = MyHistorySerializer(history, many=True)
         print(serializer.data)
         return Response(serializer.data)
+    
+
+class historyDetails(APIView):
+    authentication_classes = [authentication.TokenAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        id = self.kwargs['id']
+        history = savedResult.objects.filter(user=request.user,id=id)
+        serializer = MyHistorySerializer(history, many=True)
+        return Response(serializer.data)
 
