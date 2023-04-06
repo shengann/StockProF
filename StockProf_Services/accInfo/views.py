@@ -9,7 +9,7 @@ from rest_framework import status, authentication, permissions
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from accInfo.serializer import savedResultSerializer
+from accInfo.serializer import savedResultSerializer, MyHistorySerializer
 from accInfo.models import savedResult
 
 
@@ -26,4 +26,14 @@ def saveResult(request):
         return Response(serializer.data, status=201)
     else:
         return Response(serializer.errors, status=400)
+    
+class historyList(APIView):
+    authentication_classes = [authentication.TokenAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, format=None):
+        history = savedResult.objects.filter(user=request.user)
+        serializer = MyHistorySerializer(history, many=True)
+        print(serializer.data)
+        return Response(serializer.data)
 
