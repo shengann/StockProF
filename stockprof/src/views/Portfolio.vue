@@ -81,6 +81,8 @@
             
             </div>
         </div>
+        <button  type="button"  @click="saveResult()" class="btn btn-primary">Save Results</button> 
+
     </div> 
 </template>
 
@@ -109,6 +111,22 @@ export default {
         document.title = 'Portfolio' + ' | Djacket'
     },
     methods: {
+        async saveResult(){
+            console.log("this.portfolioTypeOptions",this.portfolioTypeOptions)
+            const data = {
+                'clusteredStocksSymbols': this.clusteredStocksSymbols,
+                'outlierStocksSymbols': this.outlierStocksSymbols,
+                'portfolioTypeOptions': this.portfolioTypeOptions,
+            }
+            await axios
+                .post('api/save-result',{data})
+                ,then( response =>{
+                    conosle.log(response)
+                })
+                .catch( error =>{
+                    console.log("error",error)
+                })
+        },
         showInput(index) {
             if (this.portfolioTypeOptions[index] !== 'Aggressive' && this.portfolioTypeOptions[index] !== 'Average' && this.portfolioTypeOptions[index] !== 'Defensive'){
                 this.showTextInput[index] = true;
