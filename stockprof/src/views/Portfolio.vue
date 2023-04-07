@@ -126,7 +126,8 @@ export default {
                 'clusteredStocksSymbols': this.clusteredStocksSymbols,
                 'outlierStocksSymbols': this.outlierStocksSymbols,
                 'portfolioTypeOptions': this.portfolioTypeOptions,
-                'category': this.category
+                'category': this.category,
+                'stockTypeOptions': this.stockTypeOptions
             }
             await axios
                 .post('api/save-result', { data })
@@ -208,7 +209,8 @@ export default {
         async getBoxPlotData() {
             await axios
                 .post('api/portfolio/box-plot-data', {
-                    "portfolio_list": this.clusteredStocksSymbols
+                    "portfolio_list": this.clusteredStocksSymbols,
+                    "Category": this.category
                 })
                 .then(response => {
                     this.boxPlotData = response.data

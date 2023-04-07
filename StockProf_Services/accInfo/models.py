@@ -10,6 +10,7 @@ class savedResult(models.Model):
     clusteredStocksSymbols = models.JSONField(default=list)
     outlierStocksSymbols = models.JSONField(default=list)
     portfolioTypeOptions = models.JSONField(default=list)
+    stockTypeOptions = models.JSONField(default=list)
     category = models.CharField(max_length=220, blank=True)
     date_created = models.DateTimeField(auto_now_add=True)
     
