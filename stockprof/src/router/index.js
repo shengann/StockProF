@@ -39,9 +39,6 @@ const routes = [
     path: '/profile',
     name: 'PersonalProfile',
     component: PersonalProfile,
-    meta: {
-      requireLogin: true
-    }
   },
   {
     path: '/stockProf/:id',
