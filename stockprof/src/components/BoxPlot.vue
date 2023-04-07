@@ -1,5 +1,7 @@
 <template>
-    <div id="plot" class="my-6"></div>
+        <div class="box-plot">
+        <div ref="boxplot" :id="'boxplot-' + id"></div>
+      </div>
 </template>
 
 <script>
@@ -7,7 +9,8 @@ import * as d3 from 'd3';
 export default {
     name: 'BoxPlot',
     props: {
-        boxPlotData: Array
+        boxPlotData: Array,
+        id: String // new prop to pass a unique ID
     },
     mounted() {
         if (this.boxPlotData.length) {
@@ -18,12 +21,16 @@ export default {
     methods: {
         showBoxPlot() {
             const margin = { top: 10, right: 30, bottom: 30, left: 40 };
-            const width = 1600 - margin.left - margin.right;
+            const width = 500 - margin.left - margin.right;
             const height = 400 - margin.top - margin.bottom;
 
+            // Create a unique id for the SVG element using the component's id
+
+            // Remove the SVG element if it exists
+            d3.select(`.plot-${this.id}`)
             // append the svg object to the selected DOM element
-            const svg = d3.select("#plot")
-                .append('svg')
+            const svg = d3.select(`#boxplot-${this.id}`).append('svg')
+                
                 .attr('width', width + margin.left + margin.right)
                 .attr('height', height + margin.top + margin.bottom)
                 .append('g')
