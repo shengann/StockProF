@@ -298,6 +298,7 @@ class MY_getComparison (views.APIView):
             initial_date = request.data.get('initial_date')
             final_date = request.data.get('final_date')
             capital_gain_loss_list = []
+            oulier_percent_changes = []
             for i in portfolio_list:
                 initial_list = []
                 final_list= []
@@ -318,9 +319,21 @@ class MY_getComparison (views.APIView):
                 average = sum(percent_changes) / len(percent_changes)
                 capital_gain_loss_list.append(average)
             
+            for i in outlier_list:
+                stockTicker = MY_stock.objects.filter(Symbol=i)
+                initial_price = MY_stockPrice.objects.filter(ticker__in=stockTicker, date=initial_date)
+                initial_serializer = MY_stockPriceSerializer(initial_price, many=True)
+                price_1=float(initial_serializer.data[0]['open'])
+                final_price = MY_stockPrice.objects.filter(ticker__in=stockTicker, date=final_date)
+                final_serializer = MY_stockPriceSerializer(final_price, many=True)
+                price_2 = float(final_serializer.data[0]['close'])
+                percent_change = (price_2 - price_1) / price_1 * 100.0
+                oulier_percent_changes.append(percent_change)
+                
             print('capital_gain_loss_list', capital_gain_loss_list)
             data = {
-                'Portfolio': capital_gain_loss_list
+                'Portfolio': capital_gain_loss_list,
+                'Outlier': oulier_percent_changes
             }
             return JsonResponse(data)
 
