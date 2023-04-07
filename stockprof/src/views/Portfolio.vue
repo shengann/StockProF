@@ -1,4 +1,4 @@
-<template>
+<template>    
     <div class="page-portfolio">
         <h1 class="title">Sector : {{ category }}</h1>
         <div v-if="outlierStocks.length > 1" class="box mt-6">
@@ -29,29 +29,33 @@
                         <td scope="row">{{ financialRatio[0].roe }}</td>
                         <td scope="row">{{ financialRatio[0].dividendyield }}</td>
                         <td scope="row">{{ financialRatio[0].pricetoearnings }}</td>
-                        <td scope="row">{{ financialRatio[0].pricetoearnings }}</td>
+                        <td scope="row">test</td>
                         <td scope="row">
                             <div class="select is-small mb-3 mr-3">
-                                <select v-model="stockTypeOptions[index]" @change="showOutlierInput(index)" >
+                                <select v-model="stockTypeOptions[index]" @change="showOutlierInput(index)">
                                     <option value="outperforming">Outpeforming</option>
                                     <option value="underperforming">Underperforming</option>
                                     <option value="custom">Custom</option>
                                 </select>
                             </div>
-                            <input  v-if="showOutlierTextInput[index]"  class="input is-small" type="text" style="width:120px;" v-model="stockTypeOptions[index]" />
+                            <input v-if="showOutlierTextInput[index]" class="input is-small" type="text"
+                                style="width:120px;" v-model="stockTypeOptions[index]" />
                         </td>
                     </tr>
                 </tbody>
             </table>
         </div>
 
-        <box-plot v-if="boxPlotData.length" :box-plot-data="boxPlotData"></box-plot>
 
-        <div class="columns box">
-            <div class="column is-one-third" v-for="(stockList, index) in clusteredStocks" v-bind:key="stockList.id">
+        <div class="columns is-multiline box">
+            <div class="column is-half" v-for="(boxPlotData, index) in boxPlotData" v-bind:key="boxPlotData.id">
                 <div>
                     <h2 class="title">Portfolio {{ index + 1 }}</h2>
-                    <table class="table table-striped table-bordered table-sm">
+                    <box-plot
+                        :box-plot-data="boxPlotData"
+                        :id="'box-plot-' + index"
+                    ></box-plot>
+                    <table class="table table-striped table-bordered table-sm" >
                         <thead>
                             <tr>
                                 <th class="text-center" scope="col">Name</th>
@@ -59,7 +63,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr v-for="stock in stockList" v-bind:key="stock.id">
+                            <tr v-for="stock in clusteredStocks[index]" v-bind:key="stock.id">
                                 <td scope="row">{{ stock.Name }}</td>
                                 <td scope="row">{{ stock.Symbol }}</td>
                             </tr>
@@ -79,10 +83,7 @@
                         </div>
                     </div>
                 </div>
-                <input v-if="showTextInput[index]" v-model="portfolioTypeOptions[index]" class="input my-4" type="text"
-                    placeholder="Portfolio type">
-
-            </div>
+                <input v-if="showTextInput[index]" v-model="portfolioTypeOptions[index]" class="input my-4" type="text" placeholder="Portfolio type">            </div>
         </div>
         <button type="button" @click="saveResult()" class="btn btn-primary mt-6">Save Results</button>
 
@@ -138,7 +139,7 @@ export default {
                 })
         },
         showInput(index) {
-            if (this.portfolioTypeOptions[index] !== 'Aggressive' && this.portfolioTypeOptions[index] !== 'Average' && this.portfolioTypeOptions[index] !== 'Defensive'){
+            if (this.portfolioTypeOptions[index] !== 'Aggressive' && this.portfolioTypeOptions[index] !== 'Average' && this.portfolioTypeOptions[index] !== 'Defensive') {
                 this.showTextInput[index] = true;
                 if (this.portfolioTypeOptions[index] == 'Custom') {
                     this.portfolioTypeOptions[index] = ''
@@ -174,7 +175,7 @@ export default {
                         this.clusteredStocksSymbols.push(clustered_symbols)
                         this.showTextInput.push(false)
                     }
-                    for (let j = 0; j < response.data.outlier.length; j++ ){
+                    for (let j = 0; j < response.data.outlier.length; j++) {
                         this.showOutlierTextInput.push(false)
                     }
                     const outlier_symbols = response.data.outlier.map(symbol => symbol.Symbol);
@@ -211,11 +212,20 @@ export default {
                 })
                 .then(response => {
                     this.boxPlotData = response.data
+                    this.boxPlotData = this.groupBoxPlotData(this.boxPlotData)
                 })
                 .catch(error => {
                     console.log(error)
                 }
                 )
+        },
+        groupBoxPlotData(arrOfObjects) {
+            return arrOfObjects.reduce((result, value, index, array) => {
+                if (index %6 === 0) {
+                    result.push(array.slice(index, index + 6))
+                }
+                return result
+            }, [])
         }
     }
 }
