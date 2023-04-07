@@ -298,6 +298,7 @@ class MY_getComparison (views.APIView):
             initial_date = request.data.get('initial_date')
             final_date = request.data.get('final_date')
             capital_gain_loss_list = []
+            oulier_percent_changes = []
             for i in portfolio_list:
                 initial_list = []
                 final_list= []
@@ -318,35 +319,58 @@ class MY_getComparison (views.APIView):
                 average = sum(percent_changes) / len(percent_changes)
                 capital_gain_loss_list.append(average)
             
+            for i in outlier_list:
+                stockTicker = MY_stock.objects.filter(Symbol=i)
+                initial_price = MY_stockPrice.objects.filter(ticker__in=stockTicker, date=initial_date)
+                initial_serializer = MY_stockPriceSerializer(initial_price, many=True)
+                price_1=float(initial_serializer.data[0]['open'])
+                final_price = MY_stockPrice.objects.filter(ticker__in=stockTicker, date=final_date)
+                final_serializer = MY_stockPriceSerializer(final_price, many=True)
+                price_2 = float(final_serializer.data[0]['close'])
+                percent_change = (price_2 - price_1) / price_1 * 100.0
+                oulier_percent_changes.append(percent_change)
+                
             print('capital_gain_loss_list', capital_gain_loss_list)
             data = {
-                'Portfolio': capital_gain_loss_list
+                'Portfolio': capital_gain_loss_list,
+                'Outlier': oulier_percent_changes
             }
             return JsonResponse(data)
 
 class getBoxPlotData(views.APIView):
     def post(self, request, *args, **kwargs):
         portfolio_list = request.data.get('portfolio_list')
+        Category = request.data.get('Category')
+        Category = Category+', Main Market'
+        stocks = MY_stock.objects.filter(Category=Category)
+        fianacial_ratio = MY_financialRatios.objects.filter(ticker__in=stocks)
+        serializer = MY_finacialRatiosSerializer(fianacial_ratio, many=True)
+        Category_data= pd.DataFrame(serializer.data)
+        scaler = MinMaxScaler()
+        columns = ['assetturnover', 'quickratio', 'debttoequity','roe', 'dividendyield', 'pricetoearnings']
+        df_norm = pd.DataFrame(scaler.fit_transform(Category_data[columns]))
+        df_norm.set_axis(columns, axis=1, inplace=True)
+        Category_data = Category_data['ticker']
+        Category_data = pd.concat([df_norm, Category_data], axis=1)
+        pd.set_option('display.max_rows', None)
+        print(Category_data)
         boxPlot_df = pd.DataFrame(columns=['col1'])
         for index, value in enumerate(portfolio_list):
+            print(index)
             ticker_list = value
             stockTicker = MY_stock.objects.filter(Symbol__in=ticker_list)
             data = MY_financialRatios.objects.filter(ticker__in=stockTicker)
-            data_frame = pd.DataFrame((MY_finacialRatiosSerializer(data, many=True)).data)
+            Cluster_data = pd.DataFrame((MY_finacialRatiosSerializer(data, many=True)).data)
             pd.set_option('display.max_rows', None)
-            data_frame = data_frame.drop(columns=['id','ticker'])
-            scaler = MinMaxScaler()
-            columns = ['assetturnover', 'quickratio', 'debttoequity','roe', 'dividendyield', 'pricetoearnings']
-            df_norm = pd.DataFrame(scaler.fit_transform(data_frame[columns]))
-            df_norm.set_axis(columns, axis=1, inplace=True)
-            data_frame[['assetturnover', 'quickratio', 'debttoequity', 'roe', 'dividendyield', 'pricetoearnings']] = data_frame[['assetturnover', 'quickratio','debttoequity', 'roe', 'dividendyield', 'pricetoearnings']].apply(pd.to_numeric)
+            Cluster_data= Cluster_data.drop(columns=columns)
+            data_frame = Cluster_data.join(Category_data, rsuffix='_other').drop(columns=['ticker_other','ticker','id'])
+            
             new_columns = {}
-            for i, col in enumerate(df_norm.columns):
+            for i, col in enumerate(data_frame.columns):
                 new_columns[col] = '{}_{}'.format(col, index+1)
 
-            df_norm = df_norm.rename(columns=new_columns)
-            quartiles = df_norm.describe(percentiles=[.25, .5, .75]).loc[['25%', '50%', '75%']]
-            print(quartiles.T)
+            data_frame = data_frame.rename(columns=new_columns)
+            quartiles = data_frame.describe(percentiles=[.25, .5, .75]).loc[['25%', '50%', '75%']]
             boxPlot_df = pd.concat([boxPlot_df, quartiles], axis=1)
 
         boxPlot_df = boxPlot_df.drop(columns=['col1'])
