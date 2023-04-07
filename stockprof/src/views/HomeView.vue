@@ -23,9 +23,10 @@
             </li>
           </ul>
         </div>
-        <button to="portfolio" @click="navigateToPortfolio" type="button" class="btn btn-primary">GeneratePortfolio</button>
+        <button v-if="this.value!=''" to="portfolio" @click="navigateToPortfolio" type="button" class="btn btn-primary">GeneratePortfolio</button>
       </div>
     </div>
+    <p class="text-centered">The generation of the portfolio based the category selected</p>
     <div class="box">
       <h2 class="subtitle">{{ this.total_stocks }} stocks found.</h2>
       <div>
