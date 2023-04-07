@@ -11,6 +11,8 @@ from django.utils import timezone
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.neighbors import LocalOutlierFactor
 from sklearn.mixture import BayesianGaussianMixture
+from sklearn.mixture import GaussianMixture
+from gap_statistic import OptimalK
 from django.http import JsonResponse
 from selenium import webdriver
 import time
@@ -80,7 +82,7 @@ class getStockPriceData(views.APIView):
         return Response(serializer.data)
         
 
-class getStockProfData(views.APIView):   
+class getStockProfData(views.APIView):
     def post(self, request, format=None):
         ticker_list = request.data.get('ticker_list')
         stockTicker = MY_stock.objects.filter(Symbol__in=ticker_list)
@@ -115,13 +117,23 @@ class getStockProfData(views.APIView):
         pd.set_option('display.max_rows', None)
 
         data_frame_clustering = data_frame.drop(columns=['lof_score','ticker'])
-        em_clustering = BayesianGaussianMixture(n_components=3)
+        print("data_frame_clustering\n", data_frame_clustering)
+
+        def special_clustering_func(data_frame_clustering, k):
+            em_clustering = GaussianMixture(n_components=k, random_state=0)
+            em_clustering.fit(data_frame_clustering)
+            return em_clustering.means_, em_clustering.predict(data_frame_clustering)
+
+        optimalk = OptimalK(clusterer=special_clustering_func)
+
+        n_clusters = optimalk(data_frame_clustering, cluster_array=range(1, 9))
+        print("n_clusters", n_clusters)
+        em_clustering = GaussianMixture(n_components=n_clusters)
         em_clustering.fit(data_frame_clustering)
         labels = em_clustering.predict(data_frame_clustering)
         data_frame['label'] = labels
         data_frame = data_frame.drop(columns=['assetturnover', 'quickratio', 'debttoequity', 'roe', 'dividendyield', 'pricetoearnings', 'lof_score'])
         pd.set_option('display.max_rows', None)
-        
         groups = data_frame.groupby('label')
         lists = []
 
@@ -333,7 +345,6 @@ class getBoxPlotData(views.APIView):
                 new_columns[col] = '{}_{}'.format(col, index+1)
 
             df_norm = df_norm.rename(columns=new_columns)
-            print(df_norm.info())
             quartiles = df_norm.describe(percentiles=[.25, .5, .75]).loc[['25%', '50%', '75%']]
             print(quartiles.T)
             boxPlot_df = pd.concat([boxPlot_df, quartiles], axis=1)
@@ -348,7 +359,7 @@ class getBoxPlotData(views.APIView):
         boxPlot_df = boxPlot_df.rename(columns={"25%": "q1", "50%": "q2","75%":"q3"})
         boxPlot_df['iqr'] = boxPlot_df['q3'] - boxPlot_df['q1']
         boxPlot_df = boxPlot_df.astype(str)
-        boxPlot_df =  boxPlot_df.sort_values(by=['name'])
+        # boxPlot_df =  boxPlot_df.sort_values(by=['name'])
         boxPlot_list = boxPlot_df.values.tolist()
 
         boxPlot_list = [{"name": row[3], "q1": row[0], "q2": row[1], "q3": row[2], "iqr": row[4]} for row in boxPlot_list]
