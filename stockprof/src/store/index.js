@@ -6,6 +6,7 @@ export default createStore({
     token: '',
   },
   getters: {
+    isAuthenticated: state => state.isAuthenticated
   },
   mutations: {
     setToken(state, token) {

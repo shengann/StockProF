@@ -1,63 +1,73 @@
-<template>
-
-    <div class="page-portfolio">   
-        <!-- <button  @click="getComparison" type="button"  class="btn btn-primary">Capital Gain/Lose</button>  -->
-        <h1 class="title">Sector : {{category}}</h1>
-        <div v-if="outlierStocks.length>1" class="box mt-6">
+<template>    
+    <div class="page-portfolio">
+        <h1 class="title">Sector : {{ category }}</h1>
+        <div v-if="outlierStocks.length > 1" class="box mt-6">
             <h2 class="title">Outlier Stocks</h2>
 
             <table class="table table-striped table-bordered table-sm">
-            <thead>
-              <tr>
-                <th class="text-center" scope="col">Name</th>
-                <th class="text-center" scope="col">Code</th>
-                <th class="text-center" scope="col">Total asset turnover</th>
-                <th class="text-center" scope="col">Cash ratio</th>
-                <th class="text-center" scope="col">Debt ratio</th>
-                <th class="text-center" scope="col">Return on equity </th>
-                <th class="text-center" scope="col">Dividend yield</th>
-                <th class="text-center" scope="col">Price earnings ratio </th>
-                <th class="text-center" scope="col">Capital Gain/Loss </th>
-
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="(financialRatio, index) in outlierFinancialratio" :key="index">
-                <td scope="row">{{ this.outlierStocks[index].Name }}</td>
-                <td scope="row">{{ this.outlierStocks[index].Symbol }}</td>
-                <td scope="row">{{ financialRatio[0].assetturnover }}</td>
-                <td scope="row">{{ financialRatio[0].quickratio }}</td>
-                <td scope="row">{{ financialRatio[0].debttoequity }}</td>
-                <td scope="row">{{ financialRatio[0].roe }}</td>
-                <td scope="row">{{ financialRatio[0].dividendyield }}</td>
-                <td scope="row">{{ financialRatio[0].pricetoearnings }}</td>
-                <td scope="row"></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <div id="plot" class="my-6"></div> 
-
-        <div class="columns box">
-            <div class="column is-one-third"
-            v-for="(stockList,index) in clusteredStocks"
-            v-bind:key="stockList.id">
-                <div>
-                    <h2 class="title">Portfolio {{index+1}}</h2>
-                    <table class="table table-striped table-bordered table-sm">
-                    <thead>
+                <thead>
                     <tr>
                         <th class="text-center" scope="col">Name</th>
                         <th class="text-center" scope="col">Code</th>
+                        <th class="text-center" scope="col">Total asset turnover</th>
+                        <th class="text-center" scope="col">Cash ratio</th>
+                        <th class="text-center" scope="col">Debt ratio</th>
+                        <th class="text-center" scope="col">Return on equity </th>
+                        <th class="text-center" scope="col">Dividend yield</th>
+                        <th class="text-center" scope="col">Price earnings ratio </th>
+                        <th class="text-center" scope="col">Capital Gain/Loss </th>
+                        <th class="text-center" scope="col">Stock Type</th>
                     </tr>
-                    </thead>
-                    <tbody>
-                    <tr v-for="stock in stockList" v-bind:key="stock.id">
-                        <td scope="row">{{ stock.Name }}</td>
-                        <td scope="row">{{ stock.Symbol }}</td>
+                </thead>
+                <tbody>
+                    <tr v-for="(financialRatio, index) in outlierFinancialratio" :key="index">
+                        <td scope="row">{{ this.outlierStocks[index].Name }}</td>
+                        <td scope="row">{{ this.outlierStocks[index].Symbol }}</td>
+                        <td scope="row">{{ financialRatio[0].assetturnover }}</td>
+                        <td scope="row">{{ financialRatio[0].quickratio }}</td>
+                        <td scope="row">{{ financialRatio[0].debttoequity }}</td>
+                        <td scope="row">{{ financialRatio[0].roe }}</td>
+                        <td scope="row">{{ financialRatio[0].dividendyield }}</td>
+                        <td scope="row">{{ financialRatio[0].pricetoearnings }}</td>
+                        <td scope="row">test</td>
+                        <td scope="row">
+                            <div class="select is-small mb-3 mr-3">
+                                <select v-model="stockTypeOptions[index]" @change="showOutlierInput(index)">
+                                    <option value="outperforming">Outpeforming</option>
+                                    <option value="underperforming">Underperforming</option>
+                                    <option value="custom">Custom</option>
+                                </select>
+                            </div>
+                            <input v-if="showOutlierTextInput[index]" class="input is-small" type="text"
+                                style="width:120px;" v-model="stockTypeOptions[index]" />
+                        </td>
                     </tr>
-                    </tbody>
+                </tbody>
+            </table>
+        </div>
+
+
+        <div class="columns is-multiline box">
+            <div class="column is-half" v-for="(boxPlotData, index) in boxPlotData" v-bind:key="boxPlotData.id">
+                <div>
+                    <h2 class="title">Portfolio {{ index + 1 }}</h2>
+                    <box-plot
+                        :box-plot-data="boxPlotData"
+                        :id="'box-plot-' + index"
+                    ></box-plot>
+                    <table class="table table-striped table-bordered table-sm" >
+                        <thead>
+                            <tr>
+                                <th class="text-center" scope="col">Name</th>
+                                <th class="text-center" scope="col">Code</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="stock in clusteredStocks[index]" v-bind:key="stock.id">
+                                <td scope="row">{{ stock.Name }}</td>
+                                <td scope="row">{{ stock.Symbol }}</td>
+                            </tr>
+                        </tbody>
                     </table>
                 </div>
                 <div class="field">
@@ -73,26 +83,18 @@
                         </div>
                     </div>
                 </div>
-                <input 
-                    v-if="showTextInput[index]"
-                    v-model="portfolioTypeOptions[index]" 
-                    class="input my-4" type="text" 
-                    placeholder="Portfolio type"
-                >
-            
-            </div>
+                <input v-if="showTextInput[index]" v-model="portfolioTypeOptions[index]" class="input my-4" type="text" placeholder="Portfolio type">            </div>
         </div>
-        <button  type="button"  @click="saveResult()" class="btn btn-primary mt-6">Save Results</button> 
+        <button type="button" @click="saveResult()" class="btn btn-primary mt-6">Save Results</button>
 
-    </div> 
+    </div>
 </template>
 
 <script>
 import axios from "axios"
-import * as d3 from 'd3';
+import BoxPlot from '@/components/BoxPlot'
 export default {
     name: 'Portfolio',
-    props: ['selectedStocks'],
     data() {
         return {
             stocks: this.$route.query.selectedStocks,
@@ -100,12 +102,17 @@ export default {
             clusteredStocks: [],
             outlierStocks: [],
             outlierFinancialratio: [],
-            clusteredStocksSymbols :[], 
-            outlierStocksSymbols : [],
+            clusteredStocksSymbols: [],
+            outlierStocksSymbols: [],
             boxPlotData: [],
             portfolioTypeOptions: [],
-            showTextInput: []
+            showTextInput: [],
+            showOutlierTextInput: [],
+            stockTypeOptions: []
         }
+    },
+    components: {
+        BoxPlot
     },
     mounted() {
         this.getPortfolio()
@@ -113,28 +120,28 @@ export default {
         document.title = 'Portfolio' + ' | StockProF'
     },
     methods: {
-        async saveResult(){
-            console.log("this.portfolioTypeOptions",this.portfolioTypeOptions)
+        async saveResult() {
+            console.log("this.portfolioTypeOptions", this.portfolioTypeOptions)
             const data = {
                 'clusteredStocksSymbols': this.clusteredStocksSymbols,
                 'outlierStocksSymbols': this.outlierStocksSymbols,
                 'portfolioTypeOptions': this.portfolioTypeOptions,
-                'category':this.category
+                'category': this.category
             }
             await axios
-                .post('api/save-result',{data})
-                ,then( response =>{
+                .post('api/save-result', { data })
+                .then(response => {
                     conosle.log(response)
                     this.$router.push('/profile')
                 })
-                .catch( error =>{
-                    console.log("error",error)
+                .catch(error => {
+                    console.log("error", error)
                 })
         },
         showInput(index) {
-            if (this.portfolioTypeOptions[index] !== 'Aggressive' && this.portfolioTypeOptions[index] !== 'Average' && this.portfolioTypeOptions[index] !== 'Defensive'){
+            if (this.portfolioTypeOptions[index] !== 'Aggressive' && this.portfolioTypeOptions[index] !== 'Average' && this.portfolioTypeOptions[index] !== 'Defensive') {
                 this.showTextInput[index] = true;
-                if (this.portfolioTypeOptions[index] == 'Custom'){
+                if (this.portfolioTypeOptions[index] == 'Custom') {
                     this.portfolioTypeOptions[index] = ''
                 }
             }
@@ -142,24 +149,40 @@ export default {
                 this.showTextInput[index] = false;
             }
         },
+        showOutlierInput(index) {
+            if (this.stockTypeOptions[index] !== 'outperforming' && this.stockTypeOptions[index] !== 'underperforming') {
+                this.showOutlierTextInput[index] = true;
+                if (this.stockTypeOptions[index] == 'custom') {
+                    this.stockTypeOptions[index] = ''
+                }
+            }
+            else {
+                this.showOutlierTextInput[index] = false;
+            }
+        },
         async getPortfolio() {
             await axios
-                .post('api/stockprof',{
-                    "ticker_list":this.stocks,
+                .post('api/stockprof', {
+                    "ticker_list": this.stocks,
                 })
                 .then(response => {
                     this.clusteredStocks = response.data.portfolio
                     this.outlierStocks = response.data.outlier
                     const outlierFinancialratio = response.data.outlier.map(financial_ratios => financial_ratios.financial_ratios);
                     this.outlierFinancialratio = outlierFinancialratio
-                    for (let i=0;i< response.data.portfolio.length;i++) {
+                    for (let i = 0; i < response.data.portfolio.length; i++) {
                         const clustered_symbols = response.data.portfolio[i].map(symbol => symbol.Symbol);
                         this.clusteredStocksSymbols.push(clustered_symbols)
                         this.showTextInput.push(false)
                     }
+                    for (let j = 0; j < response.data.outlier.length; j++) {
+                        this.showOutlierTextInput.push(false)
+                    }
                     const outlier_symbols = response.data.outlier.map(symbol => symbol.Symbol);
                     this.outlierStocksSymbols = outlier_symbols
                     this.getBoxPlotData()
+                    this.getComparison()
+
                 })
                 .catch(error => {
                     console.log(error)
@@ -184,99 +207,28 @@ export default {
         },
         async getBoxPlotData() {
             await axios
-                .post('api/portfolio/box-plot-data',{
+                .post('api/portfolio/box-plot-data', {
                     "portfolio_list": this.clusteredStocksSymbols
-                }) 
+                })
                 .then(response => {
                     this.boxPlotData = response.data
-
-                    const margin = { top: 10, right: 30, bottom: 30, left: 40 };
-                    const width = 1600 - margin.left - margin.right;
-                    const height = 400 - margin.top - margin.bottom;
-
-                    // append the svg object to the selected DOM element
-                    const svg = d3.select("#plot")
-                        .append('svg')
-                        .attr('width', width + margin.left + margin.right)
-                        .attr('height', height + margin.top + margin.bottom)
-                        .append('g')
-                        .attr('transform', `translate(${margin.left},${margin.top})`);
-
-                    // Compute quartiles, median, inter quantile range min and max
-                    const sumstat = this.boxPlotData.map((d) => {
-                        const q1 = d.q1;
-                        const median = d.q2;
-                        const q3 = d.q3;
-                        const interQuantileRange = d.iqr;
-                        const min = q1 - 1.5 * interQuantileRange;
-                        const max = q3 + 1.5 * interQuantileRange;
-                        return ({ name: d.name, q1, median, q3, interQuantileRange, min, max });
-                    });
-                    
-                    // Show the X scale
-                    const x = d3.scaleBand()
-                        .range([0, width])
-                        .domain(this.boxPlotData.map((d) => d.name))
-                        .paddingInner(1)
-                        .paddingOuter(0.5);
-                    svg.append('g')
-                        .attr('transform', `translate(0,${height})`)
-                        .call(d3.axisBottom(x));
-
-                    // Show the Y scale
-                    const y = d3.scaleLinear()
-                        .domain([-0.5, 1])
-                        .range([height, 0]);
-                    svg.append('g').call(d3.axisLeft(y));
-
-                    // Show the main vertical line
-                    svg
-                        .selectAll('vertLines')
-                        .data(sumstat)
-                        .enter()
-                        .append('line')
-                        .attr('x1', (d) => x(d.name))
-                        .attr('x2', (d) => x(d.name))
-                        .attr('y1', (d) => y(d.min))
-                        .attr('y2', (d) => y(d.max))
-                        .attr('stroke', 'black')
-                        .style('width', 40);
-
-                    // rectangle for the main box
-                    const boxWidth = 50;
-                    svg
-                        .selectAll('boxes')
-                        .data(sumstat)
-                        .enter()
-                        .append('rect')
-                        .attr('x', (d) => x(d.name) - boxWidth / 2)
-                        .attr('y', (d) => y(d.q3))
-                        .attr('height', (d) => y(d.q1) - y(d.q3))
-                        .attr('width', boxWidth)
-                        .attr('stroke', 'black')
-                        .style('fill', '#69b3a2');
-
-                    // Show the median
-                    svg
-                        .selectAll('medianLines')
-                        .data(sumstat)
-                        .enter()
-                        .append('line')
-                        .attr('x1', (d) => x(d.name) - boxWidth / 2)
-                        .attr('x2', (d) => x(d.name) + boxWidth/2)
-                        .attr("y1", function (d) { return (y(d.median)) }  )
-                        .attr("y2", function (d) { return (y(d.median)) }  )
-                        .attr("stroke", "black")
-                        .style("width", 80)
+                    this.boxPlotData = this.groupBoxPlotData(this.boxPlotData)
                 })
                 .catch(error => {
                     console.log(error)
                 }
                 )
+        },
+        groupBoxPlotData(arrOfObjects) {
+            return arrOfObjects.reduce((result, value, index, array) => {
+                if (index %6 === 0) {
+                    result.push(array.slice(index, index + 6))
+                }
+                return result
+            }, [])
         }
     }
 }
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>

@@ -5,6 +5,7 @@ import Portfolio from '../views/Portfolio.vue'
 import SignUp from '../views/SignUp.vue'
 import Login from '../views/Login.vue'
 import PersonalProfile from '../views/PersonalProfile.vue'
+import PortfolioDetails from '../views/PortfolioDetails.vue'
 import store from '../store'
 
 const routes = [
@@ -41,7 +42,13 @@ const routes = [
     meta: {
       requireLogin: true
     }
-  }
+  },
+  {
+    path: '/stockProf/:id',
+    name: 'PortfolioDetails',
+    component: PortfolioDetails,
+    props: route => ({ message: route.params.message })
+  },
 ]
 
 const router = createRouter({
