@@ -4,6 +4,13 @@
         <div v-if="outlierStocks.length > 1" class="box mt-6">
             <h2 class="title">Outlier Stocks</h2>
 
+            <div class="columns is-multiline" v-if="outlierStockProfile">
+                <div class="column is-half" v-for="(outlierBoxPlotData, index) in outlierBoxPlotData" :key="outlierBoxPlotData.id" :class="{ 'is-12-mobile': (index % 2 === 0) }">
+                    <h2 class="title">{{this.outlierTitle[index]}}</h2>
+                    <box-plot :box-plot-data="outlierBoxPlotData" :id="'box-plot-' + index"></box-plot>
+                </div>
+            </div>
+
             <table class="table table-striped table-bordered table-sm">
                 <thead>
                     <tr>
@@ -29,12 +36,12 @@
                         <td scope="row">{{ financialRatio[0].roe }}</td>
                         <td scope="row">{{ financialRatio[0].dividendyield }}</td>
                         <td scope="row">{{ financialRatio[0].pricetoearnings }}</td>
-                        <td scope="row">test</td>
+                        <td scope="row" v-if="OutlierCapitalGainLoss.length > 0">{{ OutlierCapitalGainLoss[index].toFixed(2)}}%</td>
                         <td scope="row">
                             <div class="select is-small mb-3 mr-3">
                                 <select v-model="stockTypeOptions[index]" @change="showOutlierInput(index)">
-                                    <option value="outperforming">Outpeforming</option>
-                                    <option value="underperforming">Underperforming</option>
+                                    <option value="Outperforming">Outpeforming</option>
+                                    <option value="Underperforming">Underperforming</option>
                                     <option value="custom">Custom</option>
                                 </select>
                             </div>
@@ -44,6 +51,7 @@
                     </tr>
                 </tbody>
             </table>
+            <button type="button" @click="OutlierStockProfile()" class="btn btn-primary mt-3">Outlier Stock Profile</button>
         </div>
 
 
@@ -70,6 +78,7 @@
                         </tbody>
                     </table>
                 </div>
+                <div class="label" v-if="ClusterCapitalGainLoss.length > 0" >Capital Gain & Loss : {{ClusterCapitalGainLoss[index].toFixed(2)}}%</div>
                 <div class="field">
                     <label class="label">Portfolio Type</label>
                     <div class="control">
@@ -105,10 +114,15 @@ export default {
             clusteredStocksSymbols: [],
             outlierStocksSymbols: [],
             boxPlotData: [],
+            outlierBoxPlotData : [],
             portfolioTypeOptions: [],
             showTextInput: [],
             showOutlierTextInput: [],
-            stockTypeOptions: []
+            stockTypeOptions: [],
+            ClusterCapitalGainLoss: [],
+            OutlierCapitalGainLoss: [],
+            outlierStockProfile: false,
+            outlierTitle: []
         }
     },
     components: {
@@ -153,7 +167,7 @@ export default {
             }
         },
         showOutlierInput(index) {
-            if (this.stockTypeOptions[index] !== 'outperforming' && this.stockTypeOptions[index] !== 'underperforming') {
+            if (this.stockTypeOptions[index] !== 'Outperforming' && this.stockTypeOptions[index] !== 'Underperforming') {
                 this.showOutlierTextInput[index] = true;
                 if (this.stockTypeOptions[index] == 'custom') {
                     this.stockTypeOptions[index] = ''
@@ -183,7 +197,7 @@ export default {
                     }
                     const outlier_symbols = response.data.outlier.map(symbol => symbol.Symbol);
                     this.outlierStocksSymbols = outlier_symbols
-                    this.getBoxPlotData()
+                    this.getBoxPlotData(this.clusteredStocksSymbols,'portfolio')
                     this.getComparison()
 
                 })
@@ -201,22 +215,32 @@ export default {
                     "final_date": "2023-03-17"
                 })
                 .then(response => {
-                    console.log(response)
+                    this.ClusterCapitalGainLoss = response.data.Portfolio
+                    this.OutlierCapitalGainLoss = response.data.Outlier
+                    console.log(this.ClusterCapitalGainLoss)
                 })
                 .catch(error => {
                     console.log(error)
                 }
                 )
         },
-        async getBoxPlotData() {
+        async getBoxPlotData(data,type) {
+            console.log(data)
             await axios
                 .post('api/portfolio/box-plot-data', {
-                    "portfolio_list": this.clusteredStocksSymbols,
+                    "portfolio_list": data,
                     "Category": this.category
                 })
                 .then(response => {
-                    this.boxPlotData = response.data
-                    this.boxPlotData = this.groupBoxPlotData(this.boxPlotData)
+                    if (type=='portfolio')
+                    {
+                        this.boxPlotData = response.data
+                        this.boxPlotData = this.groupBoxPlotData(this.boxPlotData)
+                    }
+                    else{
+                        this.outlierBoxPlotData = response.data
+                        this.outlierBoxPlotData = this.groupBoxPlotData(this.outlierBoxPlotData)
+                    }
                 })
                 .catch(error => {
                     console.log(error)
@@ -230,6 +254,28 @@ export default {
                 }
                 return result
             }, [])
+        },
+        async OutlierStockProfile(){
+            const sortedArray = this.stockTypeOptions.sort();// sort the array in ascending order
+            this.outlierTitle = [...new Set(sortedArray)];
+            console.log("sortedArray", sortedArray)
+             console.log("this.outlierTitle", this.outlierTitle)
+            const indexMap = this.stockTypeOptions.reduce((acc, value, index) => {
+                if (acc[value]) {
+                    acc[value].push(index);
+                } else {
+                    acc[value] = [index];
+                }
+                return acc;
+            }, {});
+            console.log("indexMap", indexMap)
+            const indexArray = Object.values(indexMap); // convert object values to an array
+            console.log("indexArray", indexArray)
+            const result = indexArray.map((sublist) =>
+                sublist.map((index) => this.outlierStocksSymbols[index])
+            );
+            this.getBoxPlotData(result,'outlier')
+            this.outlierStockProfile= true
         }
     }
 }
