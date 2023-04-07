@@ -132,8 +132,10 @@ export default {
             await axios
                 .post('api/save-result', { data })
                 .then(response => {
-                    conosle.log(response)
-                    this.$router.push('/profile')
+                    console.log(response)
+                    this.$router.push({ 
+                        name: 'PersonalProfile'
+                    })
                 })
                 .catch(error => {
                     console.log("error", error)
@@ -195,8 +197,8 @@ export default {
                 .post('api/comparison', {
                     "portfolio_list": this.clusteredStocksSymbols,
                     "outlier_list": this.outlierStocksSymbols,
-                    "initial_date": "2022-01-05",
-                    "final_date": "2023-01-05"
+                    "initial_date": "2023-01-03",
+                    "final_date": "2023-03-17"
                 })
                 .then(response => {
                     console.log(response)
