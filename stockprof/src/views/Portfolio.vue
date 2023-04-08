@@ -1,12 +1,13 @@
-<template>    
+<template>
     <div class="page-portfolio">
         <h1 class="title">Sector : {{ category }}</h1>
         <div v-if="outlierStocks.length > 1" class="box mt-6">
             <h2 class="title">Outlier Stocks</h2>
 
             <div class="columns is-multiline" v-if="outlierStockProfile">
-                <div class="column is-half" v-for="(outlierBoxPlotData, index) in outlierBoxPlotData" :key="outlierBoxPlotData.id" :class="{ 'is-12-mobile': (index % 2 === 0) }">
-                    <h2 class="title">{{this.outlierTitle[index]}}</h2>
+                <div class="column is-half" v-for="(outlierBoxPlotData, index) in outlierBoxPlotData"
+                    :key="outlierBoxPlotData.id" :class="{ 'is-12-mobile': (index % 2 === 0) }">
+                    <h2 class="title">{{ this.outlierTitle[index] }}</h2>
                     <box-plot :box-plot-data="outlierBoxPlotData" :id="'box-plot-' + index"></box-plot>
                 </div>
             </div>
@@ -36,7 +37,8 @@
                         <td scope="row">{{ financialRatio[0].roe }}</td>
                         <td scope="row">{{ financialRatio[0].dividendyield }}</td>
                         <td scope="row">{{ financialRatio[0].pricetoearnings }}</td>
-                        <td scope="row" v-if="OutlierCapitalGainLoss.length > 0">{{ OutlierCapitalGainLoss[index].toFixed(2)}}%</td>
+                        <td scope="row" v-if="OutlierCapitalGainLoss.length > 0">{{
+                            OutlierCapitalGainLoss[index].toFixed(2) }}%</td>
                         <td scope="row">
                             <div class="select is-small mb-3 mr-3">
                                 <select v-model="stockTypeOptions[index]" @change="showOutlierInput(index)">
@@ -59,11 +61,8 @@
             <div class="column is-half" v-for="(boxPlotData, index) in boxPlotData" v-bind:key="boxPlotData.id">
                 <div>
                     <h2 class="title">Portfolio {{ index + 1 }}</h2>
-                    <box-plot
-                        :box-plot-data="boxPlotData"
-                        :id="'box-plot-' + index"
-                    ></box-plot>
-                    <table class="table table-striped table-bordered table-sm" >
+                    <box-plot :box-plot-data="boxPlotData" :id="'box-plot-' + index"></box-plot>
+                    <table class="table table-striped table-bordered table-sm">
                         <thead>
                             <tr>
                                 <th class="text-center" scope="col">Name</th>
@@ -78,7 +77,8 @@
                         </tbody>
                     </table>
                 </div>
-                <div class="label" v-if="ClusterCapitalGainLoss.length > 0" >Capital Gain & Loss : {{ClusterCapitalGainLoss[index].toFixed(2)}}%</div>
+                <div class="label" v-if="ClusterCapitalGainLoss.length > 0">Capital Gain & Loss :
+                    {{ ClusterCapitalGainLoss[index].toFixed(2) }}%</div>
                 <div class="field">
                     <label class="label">Portfolio Type</label>
                     <div class="control">
@@ -92,9 +92,30 @@
                         </div>
                     </div>
                 </div>
-                <input v-if="showTextInput[index]" v-model="portfolioTypeOptions[index]" class="input my-4" type="text" placeholder="Portfolio type">            </div>
+                <input v-if="showTextInput[index]" v-model="portfolioTypeOptions[index]" class="input my-4" type="text"
+                    placeholder="Portfolio type">
+            </div>
         </div>
-        <button type="button" @click="saveResult()" class="btn btn-primary mt-6">Save Results</button>
+        <div>
+            <button @click="showModal = true" class="btn btn-primary mt-4">Save Results</button>
+            <div class="modal" :class="{ 'is-active': showModal }">
+                <div class="modal-background"  @click="showModal = false"></div>
+                <div class="modal-card">
+                    <header class="modal-card-head">
+                        <p class="modal-card-title">Sector : {{ category }}</p>
+                        <button class="delete" aria-label="close" @click="showModal = false"></button>
+                    </header>
+                    <section class="modal-card-body">
+                        <label>Remarks For The Portfolio  Generated</label>
+                        <input v-model="remark" class="input my-4" type="text" placeholder="Remarks">
+                    </section>
+                    <footer class="modal-card-foot">
+                        <button class="button is-success" @click="saveResult()">Save Results</button>
+                        <button class="button" @click="showModal = false">Cancel</button>
+                    </footer>
+                </div>
+            </div>
+        </div>
 
     </div>
 </template>
@@ -114,7 +135,7 @@ export default {
             clusteredStocksSymbols: [],
             outlierStocksSymbols: [],
             boxPlotData: [],
-            outlierBoxPlotData : [],
+            outlierBoxPlotData: [],
             portfolioTypeOptions: [],
             showTextInput: [],
             showOutlierTextInput: [],
@@ -122,7 +143,8 @@ export default {
             ClusterCapitalGainLoss: [],
             OutlierCapitalGainLoss: [],
             outlierStockProfile: false,
-            outlierTitle: []
+            outlierTitle: [],
+            showModal: false,
         }
     },
     components: {
@@ -147,7 +169,7 @@ export default {
                 .post('api/save-result', { data })
                 .then(response => {
                     console.log(response)
-                    this.$router.push({ 
+                    this.$router.push({
                         name: 'PersonalProfile'
                     })
                 })
@@ -197,7 +219,7 @@ export default {
                     }
                     const outlier_symbols = response.data.outlier.map(symbol => symbol.Symbol);
                     this.outlierStocksSymbols = outlier_symbols
-                    this.getBoxPlotData(this.clusteredStocksSymbols,'portfolio')
+                    this.getBoxPlotData(this.clusteredStocksSymbols, 'portfolio')
                     this.getComparison()
 
                 })
@@ -224,7 +246,7 @@ export default {
                 }
                 )
         },
-        async getBoxPlotData(data,type) {
+        async getBoxPlotData(data, type) {
             console.log(data)
             await axios
                 .post('api/portfolio/box-plot-data', {
@@ -232,12 +254,11 @@ export default {
                     "Category": this.category
                 })
                 .then(response => {
-                    if (type=='portfolio')
-                    {
+                    if (type == 'portfolio') {
                         this.boxPlotData = response.data
                         this.boxPlotData = this.groupBoxPlotData(this.boxPlotData)
                     }
-                    else{
+                    else {
                         this.outlierBoxPlotData = response.data
                         this.outlierBoxPlotData = this.groupBoxPlotData(this.outlierBoxPlotData)
                     }
@@ -249,17 +270,17 @@ export default {
         },
         groupBoxPlotData(arrOfObjects) {
             return arrOfObjects.reduce((result, value, index, array) => {
-                if (index %6 === 0) {
+                if (index % 6 === 0) {
                     result.push(array.slice(index, index + 6))
                 }
                 return result
             }, [])
         },
-        async OutlierStockProfile(){
+        async OutlierStockProfile() {
             const sortedArray = this.stockTypeOptions.sort();// sort the array in ascending order
             this.outlierTitle = [...new Set(sortedArray)];
             console.log("sortedArray", sortedArray)
-             console.log("this.outlierTitle", this.outlierTitle)
+            console.log("this.outlierTitle", this.outlierTitle)
             const indexMap = this.stockTypeOptions.reduce((acc, value, index) => {
                 if (acc[value]) {
                     acc[value].push(index);
@@ -274,8 +295,8 @@ export default {
             const result = indexArray.map((sublist) =>
                 sublist.map((index) => this.outlierStocksSymbols[index])
             );
-            this.getBoxPlotData(result,'outlier')
-            this.outlierStockProfile= true
+            this.getBoxPlotData(result, 'outlier')
+            this.outlierStockProfile = true
         }
     }
 }
