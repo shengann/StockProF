@@ -82,7 +82,7 @@ class getStockPriceData(views.APIView):
         data_list = [{'Date': str(item['date']), 'Open': item['open'], 'High':item['high'],
                       'Low': item['low'], 'Volume': item['volume']} for item in serializer.data]
         json_data = json.dumps(data_list)
-
+        json_data = json.loads(json_data)
         return Response(json_data)
         
 
