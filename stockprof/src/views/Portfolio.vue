@@ -145,6 +145,7 @@ export default {
             outlierStockProfile: false,
             outlierTitle: [],
             showModal: false,
+            remark: ''
         }
     },
     components: {
@@ -163,7 +164,8 @@ export default {
                 'outlierStocksSymbols': this.outlierStocksSymbols,
                 'portfolioTypeOptions': this.portfolioTypeOptions,
                 'category': this.category,
-                'stockTypeOptions': this.stockTypeOptions
+                'stockTypeOptions': this.stockTypeOptions,
+                'remarks' : this.remark
             }
             await axios
                 .post('api/save-result', { data })
