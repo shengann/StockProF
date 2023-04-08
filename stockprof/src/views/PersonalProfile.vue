@@ -8,6 +8,7 @@
             <table class="table table-striped table-bordered">
                 <thead>
                     <tr>
+                        <th class="text-center" scope="col"></th>
                         <th class="text-center" scope="col">Category</th>
                         <th class="text-center" scope="col">Date Created</th>
                         <th class="text-center" scope="col">remarks</th>
@@ -16,6 +17,7 @@
                 </thead>
                 <tbody>
                     <tr v-for="(data,index) in history" :key="data.id">
+                        <td><button class="delete button is-danger" aria-label="close"  @click="showModal = true; this.deleteId=data.id"></button></td>
                         <td scope="row">{{ data.category}}</td>
                         <td scope="row">{{ formatDate(data.date_created)}}</td>
                         <td>{{data.remarks}}</td>
@@ -23,6 +25,22 @@
                     </tr>
                 </tbody>
             </table>
+            <div class="modal"  :class="{ 'is-active': showModal }">
+                    <div class="modal-background" @click="showModal = false"></div>
+                    <div class="modal-card">
+                        <header class="modal-card-head">
+                            <p class="modal-card-title">Are You  Sure?</p>
+                            <button class="delete" aria-label="close" @click="showModal = false"></button>
+                        </header>
+                        <section class="modal-card-body">
+                            <label>Do you want to delete the selected portfolio.This procees cannot be undone</label>
+                        </section>
+                        <footer class="modal-card-foot">
+                            <button class="button is-danger" @click="deleteHistory(this.deleteId); showModal = false">Save Results</button>
+                            <button class="button" @click="showModal = false">Cancel</button>
+                        </footer>
+                    </div>
+                </div>
         </div>
 
     </div>
@@ -36,7 +54,9 @@ export default {
     name: 'PersonalProfile',
     data() {
         return {
-            history:[]
+            history:[],
+            showModal: false,
+            deleteId: '',
         }
     },
     mounted() {
@@ -50,6 +70,13 @@ export default {
                 .get('api/history')
                 .then(response => {
                     this.history = response.data
+                })
+        },
+        async deleteHistory(id) {
+            await axios
+                .delete(`api/history/${this.deleteId}`)
+                .then(response => {
+                    this.getHistory()
                 })
         },
         formatDate(value) {
