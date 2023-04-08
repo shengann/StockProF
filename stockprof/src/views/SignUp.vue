@@ -13,6 +13,13 @@
                     </div>
 
                     <div class="field">
+                            <label>Email</label>
+                            <div class="control">
+                                <input type="email" class="input" v-model="email">
+                            </div>
+                        </div>
+
+                    <div class="field">
                         <label>Password</label>
                         <div class="control">
                             <input type="password" class="input" v-model="password">
@@ -20,7 +27,7 @@
                     </div>
 
                     <div class="field">
-                        <label>Repeat password</label>
+                        <label>Confirmed password</label>
                         <div class="control">
                             <input type="password" class="input" v-model="password2">
                         </div>
@@ -55,6 +62,7 @@ export default {
             username: '',
             password: '',
             password2: '',
+            email: '',
             errors: []
         }
     },
@@ -63,7 +71,7 @@ export default {
             this.errors = []
 
             if (this.username === '') {
-                this.errors.push('The username is missing')
+                this.errors.push('Pleaase enter your username')
             }
 
             if (this.password === '') {
@@ -77,7 +85,8 @@ export default {
             if (!this.errors.length) {
                 const formData = {
                     username: this.username,
-                    password: this.password
+                    password: this.password,
+                    email: this.email
                 }
 
                 axios

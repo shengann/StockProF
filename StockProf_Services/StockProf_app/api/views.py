@@ -77,9 +77,13 @@ class getStockPriceData(views.APIView):
     def get(self, request, *args, **kwargs):
         ticker = self.kwargs['ticker']
         stock_object = MY_stock.objects.filter(Symbol=ticker)
-        fianacial_ratio = MY_financialRatios.objects.filter(ticker__in=stock_object)
-        serializer = MY_finacialRatiosSerializer(fianacial_ratio, many=True)
-        return Response(serializer.data)
+        stock_price = MY_stockPrice.objects.filter(ticker__in=stock_object)
+        serializer = MY_stockPriceSerializer(stock_price, many=True)
+        data_list = [{'Date': str(item['date']), 'Open': item['open'], 'High':item['high'],
+                      'Low': item['low'], 'Volume': item['volume']} for item in serializer.data]
+        json_data = json.dumps(data_list)
+
+        return Response(json_data)
         
 
 class getStockProfData(views.APIView):
@@ -243,7 +247,7 @@ class MY_getFinancialRatiosData(views.APIView):
 class MY_getStockPrice (views.APIView):
     def post(self, request, *args, **kwargs):
         code_list = [
-            "0091", "7251", "2739", "7045", "5255", "5199", "5071", "5210", "3042", "7293", "5132", "7277", "5141", "5257", "7228", "7250", "5186", "5133", "7108", "7158", "5142", "5115", "0219", "5243", "4324", "7164", "7253", "5279", "5256", "5218"]
+            "6645","5259","5078","2062","5246","5077","5173","5140","7210","5303","5032","7013","7117","8346","6521","3816","5136","7187","7218","5014","8397","5614","7053","5149","5267","0078","6254","5145","7676","4634","8133"]
 
 
         for Symbol in code_list:
@@ -370,7 +374,7 @@ class getBoxPlotData(views.APIView):
                 new_columns[col] = '{}_{}'.format(col, index+1)
 
             data_frame = data_frame.rename(columns=new_columns)
-            quartiles = data_frame.describe(percentiles=[.25, .5, .75]).loc[['25%', '50%', '75%']]
+            quartiles = data_frame.describe(percentiles=[.25, .5, .75]).loc[['min', '25%', '50%', '75%', 'max']]
             boxPlot_df = pd.concat([boxPlot_df, quartiles], axis=1)
 
         boxPlot_df = boxPlot_df.drop(columns=['col1'])
@@ -385,8 +389,7 @@ class getBoxPlotData(views.APIView):
         boxPlot_df = boxPlot_df.astype(str)
         # boxPlot_df =  boxPlot_df.sort_values(by=['name'])
         boxPlot_list = boxPlot_df.values.tolist()
-
-        boxPlot_list = [{"name": row[3], "q1": row[0], "q2": row[1], "q3": row[2], "iqr": row[4]} for row in boxPlot_list]
+        boxPlot_list = [{"name": row[5], "min": row[0], "max":row[4],"q1": row[1], "q2": row[2], "q3": row[3], "iqr": row[6]} for row in boxPlot_list]
               
         json_data = json.dumps(boxPlot_list)
         json_data = json.loads(json_data)

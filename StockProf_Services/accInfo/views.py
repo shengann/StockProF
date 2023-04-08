@@ -47,4 +47,27 @@ class historyDetails(APIView):
         history = savedResult.objects.filter(user=request.user,id=id)
         serializer = MyHistorySerializer(history, many=True)
         return Response(serializer.data)
+    
+    def delete(self, request, *args, **kwargs):
+        id = self.kwargs['id']
+        history = savedResult.objects.filter(user=request.user, id=id)
+        if history.exists():
+            history.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        else:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+    def put(self, request, *args, **kwargs):
+        id = self.kwargs['id']
+        history = savedResult.objects.filter(user=request.user, id=id)
+        if history.exists():
+            serializer = MyHistorySerializer(
+                history.first(), data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response(status=status.HTTP_404_NOT_FOUND)
 
