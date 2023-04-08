@@ -21,8 +21,8 @@ export default {
     methods: {
         showBoxPlot() {
             const margin = { top: 10, right: 30, bottom: 30, left: 40 };
-            const width = 500 - margin.left - margin.right;
-            const height = 400 - margin.top - margin.bottom;
+            const width = 700 - margin.left - margin.right;
+            const height = 500 - margin.top - margin.bottom;
 
             // Create a unique id for the SVG element using the component's id
 
