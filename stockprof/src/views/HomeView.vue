@@ -1,17 +1,7 @@
 <template>
   <div class="home">
-    <div class="field has-addons columns">
-      <div  class="column is-one-third is-flex">
-        <div class="control">
-          <input class="input" type="text" placeholder="Find a repository">
-        </div>
-        <div >
-          <a class="button is-info">
-            Search
-          </a>
-        </div>
-      </div>
-      <div class="column is-one-third">
+    <div class="field has-addons columns is-flex justify-content-center">
+      <div class="column is-half">
         <div class="dropdown">
           <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown"
             aria-expanded="false">
@@ -23,12 +13,25 @@
             </li>
           </ul>
         </div>
-        <button v-if="this.value!=''" to="portfolio" @click="navigateToPortfolio" type="button" class="btn btn-primary">GeneratePortfolio</button>
+        <button v-if="this.value != ''" to="portfolio" @click="navigateToPortfolio" type="button"
+          class="btn btn-primary">GeneratePortfolio</button>
       </div>
     </div>
-    <p class="text-centered">The generation of the portfolio based the category selected</p>
+    <label class="text-centered label">*The generation of the portfolio based the category selected</label>
     <div class="box">
-      <h2 class="subtitle">{{ this.total_stocks }} stocks found.</h2>
+      <div class="columns">
+        <div class="column  is-flex ">
+          <div class="control">
+            <input class="input" type="text" placeholder="Find a repository">
+          </div>
+          <div>
+            <a class="button is-info">
+              Search
+            </a>
+          </div>
+        </div>
+        <h2 class="subtitle column is-one-third has-text-right">{{ this.total_stocks }} stocks found.</h2>
+      </div>
       <div>
         <table class="table table-striped table-bordered table-sm">
           <thead>
@@ -63,10 +66,10 @@
         </table>
         <nav class="pagination is-flex justify-content-between" role="navigation" aria-label="pagination">
           <div>
-            <a v-if="currentPage>1" class="pagination-previous" @click="loadPrevious()">Previous</a>
+            <a v-if="currentPage > 1" class="pagination-previous" @click="loadPrevious()">Previous</a>
           </div>
           <div>
-             <a class="pagination-next" @click="loadNext()">Next page</a>
+            <a class="pagination-next" @click="loadNext()">Next page</a>
           </div>
           <!-- <ul class="pagination-list">
             <li>
