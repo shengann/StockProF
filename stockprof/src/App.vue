@@ -1,14 +1,36 @@
 <template>
   <div id="wrapper">
-    <nav>
-      <router-link to="/">Home</router-link> |
-      <router-link to="/about">About</router-link> |
-      <router-link to="/login">Login</router-link> |
-      <router-link to="/profile" v-if="isAuthenticated">Personal Profile</router-link> 
+    <nav class="navbar" role="navigation" aria-label="main navigation">
+      <div id="navbarBasicExample" class="navbar-menu">
+        <div class="navbar-start">
+          <router-link class="navbar-item is-dark" to="/">Home</router-link>
+          <router-link class="navbar-item is-dark" to="/about">About</router-link>
+        </div>
+      </div>
+
+      <div class="navbar-end">
+        <div class="navbar-item">
+          <div class="buttons">
+            <router-link  to="/profile"  v-if="isAuthenticated" class="button is-primary">
+              <strong>Personal Profile</strong>
+            </router-link >
+            <router-link  to="/signup" v-else class="button is-primary">
+                <strong>Sign Up</strong>
+            </router-link>
+            <a  v-if="isAuthenticated" @click="logOut" class="button is-danger">
+              Logout
+            </a>
+            <router-link  v-else to="/login" class="button is-light">
+                Log in
+            </router-link>
+          </div>
+        </div>
+      </div>
     </nav>
     <section class="section">
-          <router-view />
+      <router-view />
     </section>
+
   </div>
 </template>
 
@@ -39,9 +61,19 @@ nav {
 
 <script>
 import { mapGetters } from 'vuex'
-export default{
+export default {
   computed: {
-  ...mapGetters(['isAuthenticated'])
-}
+    ...mapGetters(['isAuthenticated'])
+  },
+  methods :{
+    logout() {
+      axios.defaults.headers.common["Authorization"] = ""
+      localStorage.removeItem("token")
+      localStorage.removeItem("username")
+      localStorage.removeItem("userid")
+      this.$store.commit('removeToken')
+      this.$router.push('/')
+    },
+  }
 }
 </script>

@@ -12,7 +12,7 @@ class savedResultSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = savedResult
-        fields = ['id', 'user', 'category', 'clusteredStocksSymbols','outlierStocksSymbols', 'portfolioTypeOptions', 'stockTypeOptions']
+        fields = ['id', 'user', 'category', 'clusteredStocksSymbols','outlierStocksSymbols', 'portfolioTypeOptions', 'stockTypeOptions','remarks']
         
 
 class MyHistorySerializer(serializers.ModelSerializer):
@@ -24,5 +24,6 @@ class MyHistorySerializer(serializers.ModelSerializer):
             "outlierStocksSymbols", 
             "portfolioTypeOptions",
             "category",
-            "date_created"
+            "date_created",
+            "remarks"
         )

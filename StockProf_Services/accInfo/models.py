@@ -13,6 +13,7 @@ class savedResult(models.Model):
     stockTypeOptions = models.JSONField(default=list)
     category = models.CharField(max_length=220, blank=True)
     date_created = models.DateTimeField(auto_now_add=True)
+    remarks = models.CharField(max_length=220, blank=True)
     
     def __str__(self):
         return f"{self.user}\t{self.category}\t{self.date_created}"
