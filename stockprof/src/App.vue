@@ -17,7 +17,7 @@
             <router-link  to="/signup" v-else class="button is-primary">
                 <strong>Sign Up</strong>
             </router-link>
-            <a  v-if="isAuthenticated" @click="logOut" class="button is-danger">
+            <a  v-if="isAuthenticated" @click="logout" class="button is-danger">
               Logout
             </a>
             <router-link  v-else to="/login" class="button is-light">
@@ -61,6 +61,7 @@ nav {
 
 <script>
 import { mapGetters } from 'vuex'
+import axios from 'axios'
 export default {
   computed: {
     ...mapGetters(['isAuthenticated'])
