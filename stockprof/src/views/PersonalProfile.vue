@@ -18,7 +18,7 @@
                     <tr v-for="(data,index) in history" :key="data.id">
                         <td scope="row">{{ data.category}}</td>
                         <td scope="row">{{ formatDate(data.date_created)}}</td>
-                        <td>idk</td>
+                        <td>{{data.remarks}}</td>
                         <td><button @click="navigateToDetails(data.id,index)" type="button" class="btn btn-primary">View Details</button></td>
                     </tr>
                 </tbody>
