@@ -4,15 +4,36 @@
         <div v-if="outlierStocks.length > 1" class="box mt-6">
             <h2 class="title">Outlier Stocks</h2>
 
-            <div class="columns is-multiline" v-if="outlierStockProfile">
-                <div class="column is-half" v-for="(outlierBoxPlotData, index) in outlierBoxPlotData"
-                    :key="outlierBoxPlotData.id" :class="{ 'is-12-mobile': (index % 2 === 0) }">
-                    <h2 class="title">{{ this.outlierTitle[index] }}</h2>
-                    <box-plot :box-plot-data="outlierBoxPlotData" :id="'box-plot-' + index"></box-plot>
+                <div class="columns is-multiline" v-if="outlierStockProfile">
+                    <div class="column is-half" v-for="(outlierBoxPlotData, index) in outlierBoxPlotData" :key="outlierBoxPlotData.id" :class="{ 'is-12-mobile': (index % 2 === 0) }">
+                        <h2 class="title">{{ this.outlierTitle[index] }}</h2>
+                        <box-plot :box-plot-data="outlierBoxPlotData" :id="'box-plot-' + index"></box-plot>
+                        <div >
+                            <table class="table table-striped table-bordered table-sm my-6">
+                                <thead>
+                                    <tr>
+                                        <th class="text-center" scope="col">Fianncial Ratio</th>
+                                        <th class="text-center" scope="col">Q1</th>
+                                        <th class="text-center" scope="col">Median</th>
+                                        <th class="text-center" scope="col">Q3</th>
+                                        <th class="text-center" scope="col">Min</th>
+                                        <th class="text-center" scope="col">Max</th>
+                                    </tr>
+                                </thead>
+                                    <tbody v-for="(data, index) in outlierBoxPlotData" v-bind:key="data.id">
+                                        <td scope="row">{{ financial_ratios[index] }}</td>
+                                        <td scope="row">{{ parseFloat(data.q1).toFixed(2) }}</td>
+                                        <td scope="row">{{ parseFloat(data.q2).toFixed(2) }}</td>
+                                        <td scope="row">{{ parseFloat(data.q3).toFixed(2) }}</td>
+                                        <td scope="row">{{ parseFloat(data.min).toFixed(2) }}</td>
+                                        <td scope="row">{{ parseFloat(data.max).toFixed(2) }}</td>
+                                    </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
-            </div>
 
-            <table class="table table-striped table-bordered table-sm">
+            <table class="table table-striped table-bordered table-sm ">
                 <thead>
                     <tr>
                         <th class="text-center" scope="col">Name</th>
@@ -47,7 +68,7 @@
                                     <option value="custom">Custom</option>
                                 </select>
                             </div>
-                            <input v-if="showOutlierTextInput[index]" class="input is-small" type="text"
+                            <input v-if="showOutlierTextInput[index]" class="input is-small" type="text"  placeholder="Stock type"
                                 style="width:120px;" v-model="stockTypeOptions[index]" />
                         </td>
                     </tr>
@@ -62,6 +83,28 @@
                 <div>
                     <h2 class="title">Portfolio {{ index + 1 }}</h2>
                     <box-plot :box-plot-data="boxPlotData" :id="'box-plot-' + index"></box-plot>
+                    <div >
+                        <table class="table table-striped table-bordered table-sm my-6">
+                            <thead>
+                                <tr>
+                                    <th class="text-center" scope="col">Fianncial Ratio</th>
+                                    <th class="text-center" scope="col">Q1</th>
+                                    <th class="text-center" scope="col">Median</th>
+                                    <th class="text-center" scope="col">Q3</th>
+                                    <th class="text-center" scope="col">Min</th>
+                                    <th class="text-center" scope="col">Max</th>
+                                </tr>
+                            </thead>
+                            <tbody v-for="(data, index) in boxPlotData" v-bind:key="data.id">
+                                    <td scope="row">{{ financial_ratios[index] }}</td>
+                                    <td scope="row">{{ parseFloat(data.q1).toFixed(2) }}</td>
+                                    <td scope="row">{{ parseFloat(data.q2).toFixed(2) }}</td>
+                                    <td scope="row">{{ parseFloat(data.q3).toFixed(2) }}</td>
+                                    <td scope="row">{{ parseFloat(data.min).toFixed(2) }}</td>
+                                    <td scope="row">{{ parseFloat(data.max).toFixed(2) }}</td>
+                            </tbody>
+                        </table>
+                    </div>
                     <table class="table table-striped table-bordered table-sm">
                         <thead>
                             <tr>
@@ -99,14 +142,14 @@
         <div>
             <button @click="showModal = true" class="btn btn-primary mt-4">Save Results</button>
             <div class="modal" :class="{ 'is-active': showModal }">
-                <div class="modal-background"  @click="showModal = false"></div>
+                <div class="modal-background" @click="showModal = false"></div>
                 <div class="modal-card">
                     <header class="modal-card-head">
                         <p class="modal-card-title">Sector : {{ category }}</p>
                         <button class="delete" aria-label="close" @click="showModal = false"></button>
                     </header>
                     <section class="modal-card-body">
-                        <label>Remarks For The Portfolio  Generated</label>
+                        <label>Remarks For The Portfolio Generated</label>
                         <input v-model="remark" class="input my-4" type="text" placeholder="Remarks">
                     </section>
                     <footer class="modal-card-foot">
@@ -145,7 +188,8 @@ export default {
             outlierStockProfile: false,
             outlierTitle: [],
             showModal: false,
-            remark: ''
+            remark: '',
+            financial_ratios : ['Total asset turnover','Cash ratio','Debt ratio','Return on equity','Dividend yield','Price earnings ratio']
         }
     },
     components: {
@@ -165,7 +209,7 @@ export default {
                 'portfolioTypeOptions': this.portfolioTypeOptions,
                 'category': this.category,
                 'stockTypeOptions': this.stockTypeOptions,
-                'remarks' : this.remark
+                'remarks': this.remark
             }
             await axios
                 .post('api/save-result', { data })
