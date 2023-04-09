@@ -51,14 +51,22 @@
                 </thead>
                 <tbody>
                     <tr v-for="(financialRatio, index) in outlierFinancialratio" :key="index">
-                        <td scope="row" style="cursor: pointer;" @click="showChartDialog(this.outlierStocks[index].Symbol)">{{ this.outlierStocks[index].Name }}</td>
-                        <td scope="row" style="cursor: pointer;" @click="showChartDialog(this.outlierStocks[index].Symbol)">{{ this.outlierStocks[index].Symbol }}</td>
-                        <td scope="row" style="cursor: pointer;" @click="showChartDialog(this.outlierStocks[index].Symbol)">{{ financialRatio[0].assetturnover }}</td>
-                        <td scope="row" style="cursor: pointer;" @click="showChartDialog(this.outlierStocks[index].Symbol)">{{ financialRatio[0].quickratio }}</td>
-                        <td scope="row" style="cursor: pointer;" @click="showChartDialog(this.outlierStocks[index].Symbol)">{{ financialRatio[0].debttoequity }}</td>
-                        <td scope="row" style="cursor: pointer;" @click="showChartDialog(this.outlierStocks[index].Symbol)">{{ financialRatio[0].roe }}</td>
-                        <td scope="row" style="cursor: pointer;" @click="showChartDialog(this.outlierStocks[index].Symbol)">{{ financialRatio[0].dividendyield }}</td>
-                        <td scope="row" style="cursor: pointer;" @click="showChartDialog(this.outlierStocks[index].Symbol)">{{ financialRatio[0].pricetoearnings }}</td>
+                        <td scope="row" style="cursor: pointer;" @click="showChartDialog(this.outlierStocks[index].Symbol)">
+                            {{ this.outlierStocks[index].Name }}</td>
+                        <td scope="row" style="cursor: pointer;" @click="showChartDialog(this.outlierStocks[index].Symbol)">
+                            {{ this.outlierStocks[index].Symbol }}</td>
+                        <td scope="row" style="cursor: pointer;" @click="showChartDialog(this.outlierStocks[index].Symbol)">
+                            {{ financialRatio[0].assetturnover }}</td>
+                        <td scope="row" style="cursor: pointer;" @click="showChartDialog(this.outlierStocks[index].Symbol)">
+                            {{ financialRatio[0].quickratio }}</td>
+                        <td scope="row" style="cursor: pointer;" @click="showChartDialog(this.outlierStocks[index].Symbol)">
+                            {{ financialRatio[0].debttoequity }}</td>
+                        <td scope="row" style="cursor: pointer;" @click="showChartDialog(this.outlierStocks[index].Symbol)">
+                            {{ financialRatio[0].roe }}</td>
+                        <td scope="row" style="cursor: pointer;" @click="showChartDialog(this.outlierStocks[index].Symbol)">
+                            {{ financialRatio[0].dividendyield }}</td>
+                        <td scope="row" style="cursor: pointer;" @click="showChartDialog(this.outlierStocks[index].Symbol)">
+                            {{ financialRatio[0].pricetoearnings }}</td>
                         <td scope="row" v-if="OutlierCapitalGainLoss.length > 0">{{
                             OutlierCapitalGainLoss[index].toFixed(2) }}%</td>
                         <td scope="row">
@@ -79,7 +87,7 @@
         </div>
 
         <div class="columns is-multiline box has-background-white border border-primary border-2 my-6">
-             <div class="column is-full">
+            <div class="column is-full">
                 <h3 class="title my-5 has-text-centered">Portfolio For Non-outlier stocks</h3>
             </div>
             <div class="column is-half" v-for="(boxPlotData, index) in boxPlotData" v-bind:key="boxPlotData.id">
@@ -117,8 +125,10 @@
                         </thead>
                         <tbody>
                             <tr v-for="stock in clusteredStocks[index]" v-bind:key="stock.id">
-                                <td scope="row" style="cursor: pointer;" @click="showChartDialog(stock.Symbol)">{{ stock.Name }}</td>
-                                <td scope="row" style="cursor: pointer;" @click="showChartDialog(stock.Symbol)">{{ stock.Symbol }}</td>
+                                <td scope="row" style="cursor: pointer;" @click="showChartDialog(stock.Symbol)">{{
+                                    stock.Name }}</td>
+                                <td scope="row" style="cursor: pointer;" @click="showChartDialog(stock.Symbol)">{{
+                                    stock.Symbol }}</td>
                             </tr>
                         </tbody>
                     </table>
@@ -180,7 +190,29 @@
             </div>
         </div>
         <div v-if="chartId != ''">
-                <stock-chart :show-modal="this.showModal" :ticker="this.chartId" @modal-closed="handleModalClosed"></stock-chart>
+            <stock-chart :show-modal="this.showModal" :ticker="this.chartId"
+                @modal-closed="handleModalClosed"></stock-chart>
+        </div>
+
+        <div v-if="explanation_showModal" class="modal" :class="{ 'is-active': explanation_showModal }">
+            <div class="modal-background" @click="explanation_showModal = false"></div>
+            <div class="modal-card">
+                <header class="modal-card-head">
+                    <p class="modal-card-title">Hi</p>
+                </header>
+                <section class="modal-card-body">
+                    <ul style="list-style-type: square;">
+                        <li>The result has two section:  outlier stocks and portfolios for non-outlier stocks.</li>
+                        <li>Outlier stocks are separated out because they have a higher chance of outperforming orunderperforming</li>
+                        <li>We describe each portfolio using five key financial ratios  (min, max, first quartile, median, and third quartile) to help you make informed investment decisions
+                        </li>
+                        <li>You need to group the outlier stocks to view the profile of the outlier stocks portfolio.</li>
+                    </ul>
+                </section>
+                <footer class="modal-card-foot">
+                    <button class="button is-info" @click="explanation_showModal = false">Yes, I am understand</button>
+                </footer>
+            </div>
         </div>
 
     </div>
@@ -217,6 +249,7 @@ export default {
             financial_ratios: ['Total asset turnover', 'Cash ratio', 'Debt ratio', 'Return on equity', 'Dividend yield', 'Price earnings ratio'],
             showModal: false,
             chartId: '',
+            explanation_showModal: true
         }
     },
     components: {
@@ -228,7 +261,6 @@ export default {
     },
     mounted() {
         this.getPortfolio()
-
         document.title = 'Portfolio' + ' | StockProF'
     },
     methods: {
