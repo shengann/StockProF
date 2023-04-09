@@ -1,7 +1,7 @@
 <template>
     <div class="page-portfolio">
         <h1 class="title">Sector : {{ category }}</h1>
-        <div v-if="outlierStocks.length > 1" class="box mt-6">
+        <div v-if="outlierStocks.length > 1" class="box mt-6 box has-background-white border border-primary border-2 my-5">
             <h2 class="title">Outlier Stocks</h2>
 
             <div class="columns is-multiline" v-if="outlierStockProfile">
@@ -51,14 +51,14 @@
                 </thead>
                 <tbody>
                     <tr v-for="(financialRatio, index) in outlierFinancialratio" :key="index">
-                        <td scope="row">{{ this.outlierStocks[index].Name }}</td>
-                        <td scope="row">{{ this.outlierStocks[index].Symbol }}</td>
-                        <td scope="row">{{ financialRatio[0].assetturnover }}</td>
-                        <td scope="row">{{ financialRatio[0].quickratio }}</td>
-                        <td scope="row">{{ financialRatio[0].debttoequity }}</td>
-                        <td scope="row">{{ financialRatio[0].roe }}</td>
-                        <td scope="row">{{ financialRatio[0].dividendyield }}</td>
-                        <td scope="row">{{ financialRatio[0].pricetoearnings }}</td>
+                        <td scope="row" style="cursor: pointer;" @click="showChartDialog(this.outlierStocks[index].Symbol)">{{ this.outlierStocks[index].Name }}</td>
+                        <td scope="row" style="cursor: pointer;" @click="showChartDialog(this.outlierStocks[index].Symbol)">{{ this.outlierStocks[index].Symbol }}</td>
+                        <td scope="row" style="cursor: pointer;" @click="showChartDialog(this.outlierStocks[index].Symbol)">{{ financialRatio[0].assetturnover }}</td>
+                        <td scope="row" style="cursor: pointer;" @click="showChartDialog(this.outlierStocks[index].Symbol)">{{ financialRatio[0].quickratio }}</td>
+                        <td scope="row" style="cursor: pointer;" @click="showChartDialog(this.outlierStocks[index].Symbol)">{{ financialRatio[0].debttoequity }}</td>
+                        <td scope="row" style="cursor: pointer;" @click="showChartDialog(this.outlierStocks[index].Symbol)">{{ financialRatio[0].roe }}</td>
+                        <td scope="row" style="cursor: pointer;" @click="showChartDialog(this.outlierStocks[index].Symbol)">{{ financialRatio[0].dividendyield }}</td>
+                        <td scope="row" style="cursor: pointer;" @click="showChartDialog(this.outlierStocks[index].Symbol)">{{ financialRatio[0].pricetoearnings }}</td>
                         <td scope="row" v-if="OutlierCapitalGainLoss.length > 0">{{
                             OutlierCapitalGainLoss[index].toFixed(2) }}%</td>
                         <td scope="row">
@@ -78,8 +78,10 @@
             <button type="button" @click="OutlierStockProfile()" class="btn btn-primary mt-3">Outlier Stock Profile</button>
         </div>
 
-
-        <div class="columns is-multiline box">
+        <div class="columns is-multiline box has-background-white border border-primary border-2 my-6">
+             <div class="column is-full">
+                <h3 class="title my-5 has-text-centered">Portfolio For Non-outlier stocks</h3>
+            </div>
             <div class="column is-half" v-for="(boxPlotData, index) in boxPlotData" v-bind:key="boxPlotData.id">
                 <div>
                     <h2 class="title">Portfolio {{ index + 1 }}</h2>
@@ -115,8 +117,8 @@
                         </thead>
                         <tbody>
                             <tr v-for="stock in clusteredStocks[index]" v-bind:key="stock.id">
-                                <td scope="row">{{ stock.Name }}</td>
-                                <td scope="row">{{ stock.Symbol }}</td>
+                                <td scope="row" style="cursor: pointer;" @click="showChartDialog(stock.Symbol)">{{ stock.Name }}</td>
+                                <td scope="row" style="cursor: pointer;" @click="showChartDialog(stock.Symbol)">{{ stock.Symbol }}</td>
                             </tr>
                         </tbody>
                     </table>
@@ -141,13 +143,13 @@
             </div>
         </div>
         <div>
-            <button @click="showModal = true" class="btn btn-primary mt-4">Save Results</button>
-            <div class="modal" v-if="isAuthenticated" :class="{ 'is-active': showModal }">
-                <div class="modal-background" @click="showModal = false"></div>
+            <button @click="saveResult_showModal = true" class="btn btn-primary mt-4">Save Results</button>
+            <div class="modal" v-if="isAuthenticated" :class="{ 'is-active': saveResult_showModal }">
+                <div class="modal-background" @click="saveResult_showModal = false"></div>
                 <div class="modal-card">
                     <header class="modal-card-head">
                         <p class="modal-card-title">Sector : {{ category }}</p>
-                        <button class="delete" aria-label="close" @click="showModal = false"></button>
+                        <button class="delete" aria-label="close" @click="saveResult_showModal = false"></button>
                     </header>
                     <section class="modal-card-body">
                         <label>Remarks For The Portfolio Generated</label>
@@ -155,27 +157,30 @@
                     </section>
                     <footer class="modal-card-foot">
                         <button class="button is-success" @click="saveResult()">Save Results</button>
-                        <button class="button" @click="showModal = false">Cancel</button>
+                        <button class="button" @click="saveResult_showModal = false">Cancel</button>
                     </footer>
                 </div>
             </div>
 
-            <div class="modal" v-else :class="{ 'is-active': showModal }">
-                <div class="modal-background" @click="showModal = false"></div>
+            <div class="modal" v-else :class="{ 'is-active': saveResult_showModal }">
+                <div class="modal-background" @click="saveResult_showModal = false"></div>
                 <div class="modal-card">
                     <header class="modal-card-head">
                         <p class="modal-card-title">Sector : {{ category }}</p>
-                        <button class="delete" aria-label="close" @click="showModal = false"></button>
+                        <button class="delete" aria-label="close" @click="saveResult_showModal = false"></button>
                     </header>
                     <section class="modal-card-body">
                         <label>Please Login to save result</label>
                     </section>
                     <footer class="modal-card-foot">
                         <button class="button is-warning" @click="saveResult()">Login</button>
-                        <button class="button" @click="showModal = false">Cancel</button>
+                        <button class="button" @click="saveResult_showModal = false">Cancel</button>
                     </footer>
                 </div>
             </div>
+        </div>
+        <div v-if="chartId != ''">
+                <stock-chart :show-modal="this.showModal" :ticker="this.chartId" @modal-closed="handleModalClosed"></stock-chart>
         </div>
 
     </div>
@@ -184,6 +189,7 @@
 <script>
 import axios from "axios"
 import BoxPlot from '@/components/BoxPlot'
+import StockChart from '@/components/StockChart'
 import { mapGetters } from 'vuex'
 export default {
     name: 'Portfolio',
@@ -206,13 +212,16 @@ export default {
             OutlierCapitalGainLoss: [],
             outlierStockProfile: false,
             outlierTitle: [],
-            showModal: false,
+            saveResult_showModal: false,
             remark: '',
-            financial_ratios: ['Total asset turnover', 'Cash ratio', 'Debt ratio', 'Return on equity', 'Dividend yield', 'Price earnings ratio']
+            financial_ratios: ['Total asset turnover', 'Cash ratio', 'Debt ratio', 'Return on equity', 'Dividend yield', 'Price earnings ratio'],
+            showModal: false,
+            chartId: '',
         }
     },
     components: {
-        BoxPlot
+        BoxPlot,
+        StockChart
     },
     computed: {
         ...mapGetters(['isAuthenticated'])
@@ -223,6 +232,13 @@ export default {
         document.title = 'Portfolio' + ' | StockProF'
     },
     methods: {
+        handleModalClosed() {
+            this.chartId = "";
+        },
+        showChartDialog(index) {
+            this.showModal = true
+            this.chartId = index
+        },
         async saveResult() {
             console.log("this.portfolioTypeOptions", this.portfolioTypeOptions)
             const data = {
