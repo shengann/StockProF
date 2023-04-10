@@ -176,16 +176,36 @@
                 <div class="modal-background" @click="saveResult_showModal = false"></div>
                 <div class="modal-card">
                     <header class="modal-card-head">
-                        <p class="modal-card-title">Sector : {{ category }}</p>
+                        <p class="modal-card-title">You are required to login to save the result</p>
                         <button class="delete" aria-label="close" @click="saveResult_showModal = false"></button>
                     </header>
                     <section class="modal-card-body">
-                        <label>Please Login to save result</label>
+                        <form @submit.prevent="submitForm">
+                        <div class="field">
+                            <label>Username</label>
+                            <div class="control">
+                                <input type="text" class="input" v-model="username">
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label>Password</label>
+                            <div class="control">
+                                <input type="password" class="input" v-model="password">
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <div class="control">
+                                <button class="button is-dark">Log in</button>
+                            </div>
+                        </div>
+
+                        <div class="notification is-danger" v-if="errors.length">
+                            <p v-for="error in errors" v-bind:key="error">{{ error }}</p>
+                        </div>
+                        </form>
                     </section>
-                    <footer class="modal-card-foot">
-                        <button class="button is-warning" @click="saveResult()">Login</button>
-                        <button class="button" @click="saveResult_showModal = false">Cancel</button>
-                    </footer>
                 </div>
             </div>
         </div>
@@ -249,7 +269,10 @@ export default {
             financial_ratios: ['Total asset turnover', 'Cash ratio', 'Debt ratio', 'Return on equity', 'Dividend yield', 'Price earnings ratio'],
             showModal: false,
             chartId: '',
-            explanation_showModal: true
+            explanation_showModal: true,
+            username: '',
+            password: '',
+            errors: []
         }
     },
     components: {
@@ -413,6 +436,44 @@ export default {
             );
             this.getBoxPlotData(result, 'outlier')
             this.outlierStockProfile = true
+        },
+        
+        async submitForm() {
+            axios.defaults.headers.common["Authorization"] = ""
+
+            localStorage.removeItem("token")
+
+            const formData = {
+                username: this.username,
+                password: this.password
+            }
+
+            await axios
+                .post("/api/token/login/", formData)
+                .then(response => {
+                    const token = response.data.auth_token
+
+                    this.$store.commit('setToken', token)
+
+                    axios.defaults.headers.common["Authorization"] = "Token " + token
+
+                    localStorage.setItem("token", token)
+
+                    const toPath = this.$route.query.to || '/profile'
+
+                    this.saveResult_showModal = false
+                })
+                .catch(error => {
+                    if (error.response) {
+                        for (const property in error.response.data) {
+                            this.errors.push(`${property}: ${error.response.data[property]}`)
+                        }
+                    } else {
+                        this.errors.push('Something went wrong. Please try again')
+
+                        console.log(JSON.stringify(error))
+                    }
+                })
         }
     }
 }
