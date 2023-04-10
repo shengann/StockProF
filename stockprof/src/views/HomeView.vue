@@ -59,9 +59,13 @@
               <td scope="row">{{ financialRatio[0].roe }}</td>
               <td scope="row">{{ financialRatio[0].dividendyield }}</td>
               <td scope="row">{{ financialRatio[0].pricetoearnings }}</td>
-              <td scope="row"><router-link v-bind:to="this.stocks[index].get_absolute_url"
-                  class="button is-dark mt-4">View Chart</router-link></td>
-            </tr>
+              <div>
+                <td scope="row"><div
+                    class="button is-dark mt-4" @click="showChartDialog(index)">View Chart</div>
+                </td>    
+              </div>
+              
+            </tr>           
           </tbody>
         </table>
         <nav class="pagination is-flex justify-content-between" role="navigation" aria-label="pagination">
@@ -71,37 +75,18 @@
           <div>
             <a class="pagination-next" @click="loadNext()">Next page</a>
           </div>
-          <!-- <ul class="pagination-list">
-            <li>
-              <a class="pagination-link" aria-label="Goto page 1">1</a>
-            </li>
-            <li>
-              <span class="pagination-ellipsis">&hellip;</span>
-            </li>
-            <li>
-              <a class="pagination-link" aria-label="Goto page 45">45</a>
-            </li>
-            <li>
-              <a class="pagination-link is-current" aria-label="Page 46" aria-current="page">46</a>
-            </li>
-            <li>
-              <a class="pagination-link" aria-label="Goto page 47">47</a>
-            </li>
-            <li>
-              <span class="pagination-ellipsis">&hellip;</span>
-            </li>
-            <li>
-              <a class="pagination-link" aria-label="Goto page 86">86</a>
-            </li>
-          </ul> -->
         </nav>
       </div>
     </div>
+      <div v-if="chartId!=''">
+            <stock-chart :show-modal="this.showModal" :ticker="this.chartId" @modal-closed="handleModalClosed"></stock-chart>
+      </div>
   </div>
 </template>
 
 <script>
 import axios from "axios"
+import StockChart from '@/components/StockChart'
 export default {
   name: 'Home',
   data() {
@@ -112,11 +97,13 @@ export default {
       options: new Set([""]),
       value: '',
       currentPage: 1,
-      total_stocks: 0
+      total_stocks: 0,
+      showModal : false,
+      chartId:'',
     }
   },
   components: {
-    // Vuetable
+    StockChart
   },
   mounted() {
     this.getStocks()
@@ -124,6 +111,13 @@ export default {
     document.title = 'Home' + ' | StockProF'
   },
   methods: {
+    handleModalClosed() {
+      this.chartId = "";
+    },
+    showChartDialog(index){
+      this.showModal = true
+      this.chartId= this.stocks[index].Symbol
+    },
     loadNext() {
       this.currentPage += 1
       if (this.value) {
