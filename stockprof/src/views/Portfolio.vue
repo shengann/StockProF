@@ -3,6 +3,55 @@
         <h1 class="title">Sector : {{ category }}</h1>
         <div v-if="outlierStocks.length > 1" class="box mt-6 box has-background-white border border-primary border-2 my-5">
             <h2 class="title">Outlier Stocks</h2>
+                        <table class="table table-striped table-bordered table-sm ">
+                    <thead>
+                        <tr>
+                            <th class="text-center" scope="col">Name</th>
+                            <th class="text-center" scope="col">Code</th>
+                            <th class="text-center" scope="col">Total asset turnover</th>
+                            <th class="text-center" scope="col">Cash ratio</th>
+                            <th class="text-center" scope="col">Debt ratio</th>
+                            <th class="text-center" scope="col">Return on equity </th>
+                            <th class="text-center" scope="col">Dividend yield</th>
+                            <th class="text-center" scope="col">Price earnings ratio </th>
+                            <th class="text-center" scope="col">Capital Gain/Loss </th>
+                            <th class="text-center" scope="col">Stock Type</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="(financialRatio, index) in outlierFinancialratio" :key="index">
+                            <td scope="row" style="cursor: pointer;" @click="showChartDialog(this.outlierStocks[index].Symbol)">
+                                {{ this.outlierStocks[index].Name }}</td>
+                            <td scope="row" style="cursor: pointer;" @click="showChartDialog(this.outlierStocks[index].Symbol)">
+                                {{ this.outlierStocks[index].Symbol }}</td>
+                            <td scope="row" style="cursor: pointer;" @click="showChartDialog(this.outlierStocks[index].Symbol)">
+                                {{ financialRatio[0].assetturnover }}</td>
+                            <td scope="row" style="cursor: pointer;" @click="showChartDialog(this.outlierStocks[index].Symbol)">
+                                {{ financialRatio[0].quickratio }}</td>
+                            <td scope="row" style="cursor: pointer;" @click="showChartDialog(this.outlierStocks[index].Symbol)">
+                                {{ financialRatio[0].debttoequity }}</td>
+                            <td scope="row" style="cursor: pointer;" @click="showChartDialog(this.outlierStocks[index].Symbol)">
+                                {{ financialRatio[0].roe }}</td>
+                            <td scope="row" style="cursor: pointer;" @click="showChartDialog(this.outlierStocks[index].Symbol)">
+                                {{ financialRatio[0].dividendyield }}</td>
+                            <td scope="row" style="cursor: pointer;" @click="showChartDialog(this.outlierStocks[index].Symbol)">
+                                {{ financialRatio[0].pricetoearnings }}</td>
+                            <td scope="row" v-if="OutlierCapitalGainLoss.length > 0">{{
+                                OutlierCapitalGainLoss[index].toFixed(2) }}%</td>
+                            <td scope="row">
+                                <div class="select is-small mb-3 mr-3">
+                                    <select v-model="stockTypeOptions[index]" @change="showOutlierInput(index)">
+                                        <option value="Outperforming">Outpeforming</option>
+                                        <option value="Underperforming">Underperforming</option>
+                                        <option value="custom">Custom</option>
+                                    </select>
+                                </div>
+                                <input v-if="showOutlierTextInput[index]" class="input is-small" type="text"
+                                    placeholder="Stock type" style="width:120px;" v-model="stockTypeOptions[index]" />
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
 
             <div class="columns is-multiline" v-if="outlierStockProfile">
                 <div class="column is-half" v-for="(outlierBoxPlotData, index) in outlierBoxPlotData"
@@ -34,55 +83,6 @@
                 </div>
             </div>
 
-            <table class="table table-striped table-bordered table-sm ">
-                <thead>
-                    <tr>
-                        <th class="text-center" scope="col">Name</th>
-                        <th class="text-center" scope="col">Code</th>
-                        <th class="text-center" scope="col">Total asset turnover</th>
-                        <th class="text-center" scope="col">Cash ratio</th>
-                        <th class="text-center" scope="col">Debt ratio</th>
-                        <th class="text-center" scope="col">Return on equity </th>
-                        <th class="text-center" scope="col">Dividend yield</th>
-                        <th class="text-center" scope="col">Price earnings ratio </th>
-                        <th class="text-center" scope="col">Capital Gain/Loss </th>
-                        <th class="text-center" scope="col">Stock Type</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr v-for="(financialRatio, index) in outlierFinancialratio" :key="index">
-                        <td scope="row" style="cursor: pointer;" @click="showChartDialog(this.outlierStocks[index].Symbol)">
-                            {{ this.outlierStocks[index].Name }}</td>
-                        <td scope="row" style="cursor: pointer;" @click="showChartDialog(this.outlierStocks[index].Symbol)">
-                            {{ this.outlierStocks[index].Symbol }}</td>
-                        <td scope="row" style="cursor: pointer;" @click="showChartDialog(this.outlierStocks[index].Symbol)">
-                            {{ financialRatio[0].assetturnover }}</td>
-                        <td scope="row" style="cursor: pointer;" @click="showChartDialog(this.outlierStocks[index].Symbol)">
-                            {{ financialRatio[0].quickratio }}</td>
-                        <td scope="row" style="cursor: pointer;" @click="showChartDialog(this.outlierStocks[index].Symbol)">
-                            {{ financialRatio[0].debttoequity }}</td>
-                        <td scope="row" style="cursor: pointer;" @click="showChartDialog(this.outlierStocks[index].Symbol)">
-                            {{ financialRatio[0].roe }}</td>
-                        <td scope="row" style="cursor: pointer;" @click="showChartDialog(this.outlierStocks[index].Symbol)">
-                            {{ financialRatio[0].dividendyield }}</td>
-                        <td scope="row" style="cursor: pointer;" @click="showChartDialog(this.outlierStocks[index].Symbol)">
-                            {{ financialRatio[0].pricetoearnings }}</td>
-                        <td scope="row" v-if="OutlierCapitalGainLoss.length > 0">{{
-                            OutlierCapitalGainLoss[index].toFixed(2) }}%</td>
-                        <td scope="row">
-                            <div class="select is-small mb-3 mr-3">
-                                <select v-model="stockTypeOptions[index]" @change="showOutlierInput(index)">
-                                    <option value="Outperforming">Outpeforming</option>
-                                    <option value="Underperforming">Underperforming</option>
-                                    <option value="custom">Custom</option>
-                                </select>
-                            </div>
-                            <input v-if="showOutlierTextInput[index]" class="input is-small" type="text"
-                                placeholder="Stock type" style="width:120px;" v-model="stockTypeOptions[index]" />
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
             <button type="button" @click="OutlierStockProfile()" class="btn btn-primary mt-3">Outlier Stock Profile</button>
         </div>
 
@@ -93,6 +93,22 @@
             <div class="column is-half" v-for="(boxPlotData, index) in boxPlotData" v-bind:key="boxPlotData.id">
                 <div>
                     <h2 class="title">Portfolio {{ index + 1 }}</h2>
+                                        <table class="table table-striped table-bordered table-sm">
+                            <thead>
+                                <tr>
+                                    <th class="text-center" scope="col">Name</th>
+                                    <th class="text-center" scope="col">Code</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="stock in clusteredStocks[index]" v-bind:key="stock.id">
+                                    <td scope="row" style="cursor: pointer;" @click="showChartDialog(stock.Symbol)">{{
+                                        stock.Name }}</td>
+                                    <td scope="row" style="cursor: pointer;" @click="showChartDialog(stock.Symbol)">{{
+                                        stock.Symbol }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
                     <box-plot :box-plot-data="boxPlotData" :id="'box-plot-' + index"></box-plot>
                     <div>
                         <table class="table table-striped table-bordered table-sm my-6">
@@ -116,22 +132,7 @@
                             </tbody>
                         </table>
                     </div>
-                    <table class="table table-striped table-bordered table-sm">
-                        <thead>
-                            <tr>
-                                <th class="text-center" scope="col">Name</th>
-                                <th class="text-center" scope="col">Code</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr v-for="stock in clusteredStocks[index]" v-bind:key="stock.id">
-                                <td scope="row" style="cursor: pointer;" @click="showChartDialog(stock.Symbol)">{{
-                                    stock.Name }}</td>
-                                <td scope="row" style="cursor: pointer;" @click="showChartDialog(stock.Symbol)">{{
-                                    stock.Symbol }}</td>
-                            </tr>
-                        </tbody>
-                    </table>
+
                 </div>
                 <div class="label" v-if="ClusterCapitalGainLoss.length > 0">Capital Gain & Loss :
                     {{ ClusterCapitalGainLoss[index].toFixed(2) }}%</div>
@@ -222,10 +223,12 @@
                 </header>
                 <section class="modal-card-body">
                     <ul style="list-style-type: square;">
-                        <li>The result has two section:  outlier stocks and portfolios for non-outlier stocks.</li>
-                        <li>Outlier stocks are separated out because they have a higher chance of outperforming orunderperforming</li>
+                        <li>The result has two section: outlier stocks and portfolios for non-outlier stocks.</li>
+                        <li>Outlier stocks are separated out because they have a higher chance of outperforming
+                            orunderperforming</li>
                         <li>Note that outlier stocks may not always be generated</li>
-                        <li>We describe each portfolio using five key financial ratios  (min, max, first quartile, median, and third quartile) to help you make informed investment decisions
+                        <li>We describe each portfolio using five key financial ratios (min, max, first quartile, median,
+                            and third quartile) to help you make informed investment decisions
                         </li>
                         <li>You need to group the outlier stocks to view the profile of the outlier stocks portfolio.</li>
                     </ul>
@@ -438,7 +441,7 @@ export default {
             this.getBoxPlotData(result, 'outlier')
             this.outlierStockProfile = true
         },
-        
+
         async submitForm() {
             axios.defaults.headers.common["Authorization"] = ""
 
