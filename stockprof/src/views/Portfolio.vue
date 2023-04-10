@@ -224,6 +224,7 @@
                     <ul style="list-style-type: square;">
                         <li>The result has two section:  outlier stocks and portfolios for non-outlier stocks.</li>
                         <li>Outlier stocks are separated out because they have a higher chance of outperforming orunderperforming</li>
+                        <li>Note that outlier stocks may not always be generated</li>
                         <li>We describe each portfolio using five key financial ratios  (min, max, first quartile, median, and third quartile) to help you make informed investment decisions
                         </li>
                         <li>You need to group the outlier stocks to view the profile of the outlier stocks portfolio.</li>
