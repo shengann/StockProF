@@ -8,6 +8,7 @@ class savedResultSerializer(serializers.ModelSerializer):
 
     outlierStocksSymbols = serializers.ListField()
     portfolioTypeOptions = serializers.ListField()
+    stockTypeOptions = serializers.ListField()
 
 
     class Meta:
@@ -23,6 +24,7 @@ class MyHistorySerializer(serializers.ModelSerializer):
             "clusteredStocksSymbols",
             "outlierStocksSymbols", 
             "portfolioTypeOptions",
+            "stockTypeOptions",
             "category",
             "date_created",
             "remarks"
