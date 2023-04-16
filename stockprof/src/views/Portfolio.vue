@@ -222,7 +222,7 @@
                     <p class="modal-card-title">Hi</p>
                 </header>
                 <section class="modal-card-body">
-                    <ul style="list-style-type: square;">
+                    <ul style="list-style-type: square; text-align: left;">
                         <li>The result has two section: outlier stocks and portfolios for non-outlier stocks.</li>
                         <li>Outlier stocks are separated out because they have a higher chance of outperforming
                             orunderperforming</li>
@@ -299,14 +299,13 @@ export default {
             this.chartId = index
         },
         async saveResult() {
-            console.log("this.portfolioTypeOptions", this.portfolioTypeOptions)
             const data = {
                 'clusteredStocksSymbols': this.clusteredStocksSymbols,
                 'outlierStocksSymbols': this.outlierStocksSymbols,
                 'portfolioTypeOptions': this.portfolioTypeOptions,
                 'category': this.category,
                 'stockTypeOptions': this.stockTypeOptions,
-                'remarks': this.remark
+                'remarks': this.remark,
             }
             await axios
                 .post('api/save-result', { data })
@@ -390,7 +389,6 @@ export default {
                 )
         },
         async getBoxPlotData(data, type) {
-            console.log(data)
             await axios
                 .post('api/portfolio/box-plot-data', {
                     "portfolio_list": data,
