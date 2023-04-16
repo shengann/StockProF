@@ -1,6 +1,9 @@
 <template>
     <div class="page-portfolio">
         <h1 class="title">Sector : {{ category }}</h1>
+       <div style="text-align: left;">
+        <button @click="explanation_showModal = true" class="btn btn-primary mt-4">Portfolio Generated Overview</button>
+      </div>
         <div v-if="outlierStocks.length > 1" class="box mt-6 box has-background-white border border-primary border-2 my-5">
             <h2 class="title">Outlier Stocks</h2>
                         <table class="table table-striped table-bordered table-sm ">
@@ -219,7 +222,7 @@
             <div class="modal-background" @click="explanation_showModal = false"></div>
             <div class="modal-card">
                 <header class="modal-card-head">
-                    <p class="modal-card-title">Hi</p>
+                    <p class="modal-card-title">Portfolio Generated</p>
                 </header>
                 <section class="modal-card-body">
                     <ul style="list-style-type: square; text-align: left;">
