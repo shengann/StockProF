@@ -41,7 +41,7 @@ const routes = [
     component: PersonalProfile,
   },
   {
-    path: '/stockProf/:id',
+    path: '/stockProf/:id/:category',
     name: 'PortfolioDetails',
     component: PortfolioDetails,
     props: route => ({ message: route.params.message })

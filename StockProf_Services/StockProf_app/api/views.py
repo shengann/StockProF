@@ -1,3 +1,4 @@
+from django.db.models import Q
 import json
 import requests
 from rest_framework.response import Response
@@ -48,21 +49,35 @@ class filterFinancialRatio(APIView):
 class StockPagination(PageNumberPagination):
     page_size = 20
     
+
 class stockList(viewsets.ModelViewSet):
-    pagination_class= StockPagination
+    pagination_class = StockPagination
     serializer_class = MY_stockSerializer
     queryset = MY_stock.objects.all().order_by('id')
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
-    search_fields = ['Symbol', 'Name','Category']
+    search_fields = ['Symbol', 'Name', 'Category']
     ordering_fields = ['Symbol', 'Symbol', 'Category']
-    
+
     def list(self, request):
         if request.query_params.get('disable_pagination'):
             self.pagination_class = None
         else:
             self.pagination_class = StockPagination
 
+        search_by = request.query_params.get('search_by')
+        if search_by == 'Name':
+            self.search_fields = ['Name']
+        elif search_by == 'Category':
+            self.search_fields = ['Category']
+        else:
+            self.search_fields = ['Symbol', 'Name', 'Category']
+
         queryset = self.filter_queryset(self.get_queryset())
+
+        search = request.query_params.get('search')
+        if search and search_by == 'Name':
+            queryset = queryset.filter(Q(Name__istartswith=search))
+
         page = self.paginate_queryset(queryset)
 
         if page is not None:
@@ -246,8 +261,7 @@ class MY_getFinancialRatiosData(views.APIView):
 
 class MY_getStockPrice (views.APIView):
     def post(self, request, *args, **kwargs):
-        code_list = [
-            "6645","5259","5078","2062","5246","5077","5173","5140","7210","5303","5032","7013","7117","8346","6521","3816","5136","7187","7218","5014","8397","5614","7053","5149","5267","0078","6254","5145","7676","4634","8133"]
+        code_list = ["5161"]
 
 
         for Symbol in code_list:

@@ -21,7 +21,7 @@
                         <td scope="row">{{ data.category}}</td>
                         <td scope="row">{{ formatDate(data.date_created)}}</td>
                         <td>{{data.remarks}}</td>
-                        <td><button @click="navigateToDetails(data.id,index)" type="button" class="btn btn-primary">View Details</button></td>
+                        <td><button @click="navigateToDetails(data.id,index, data.category)" type="button" class="btn btn-primary">View Details</button></td>
                     </tr>
                 </tbody>
             </table>
@@ -82,10 +82,10 @@ export default {
         formatDate(value) {
             return moment(value, 'YYYY-MM-DDTHH:mm:ss.SSSZZ').local().format('MMM D, YYYY h:mm A');
         },
-        navigateToDetails(id,index){
+        navigateToDetails(id,index,category){
             this.$router.push({
                 name: 'PortfolioDetails', 
-                params: { id: id },
+                params: {id , category},
             });
         }
     }
