@@ -101,7 +101,7 @@ export default {
                 .attr("dy", "1em")
                 .style("text-anchor", "middle")
                 .style("font-weight", "bold")
-                .text("Price ($)");
+                .text("Price (RM)");
             
                 this.stock_ticker= ''
 
