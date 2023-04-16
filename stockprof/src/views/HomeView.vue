@@ -1,5 +1,7 @@
 <template>
   <div class="home">
+    <head><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" integrity="sha512-..." crossorigin="anonymous" />
+  </head>
     <div class="field has-addons columns is-flex justify-content-center">
       <div class="column is-half">
         <div class="dropdown">
@@ -22,7 +24,7 @@
       <div class="columns">
         <div class="column  is-flex ">
           <div class="control">
-            <input class="input" type="text" placeholder="Find a repository">
+            <input class="input" type="text" placeholder="Find the stocks">
           </div>
           <div>
             <a class="button is-info">
@@ -36,15 +38,60 @@
         <table class="table table-striped table-bordered table-sm">
           <thead>
             <tr>
-              <th class="text-center" scope="col">Name</th>
-              <th class="text-center" scope="col">Code</th>
-              <th class="text-center" scope="col">Category</th>
-              <th class="text-center" scope="col">Total asset turnover</th>
-              <th class="text-center" scope="col">Cash ratio</th>
-              <th class="text-center" scope="col">Debt ratio</th>
-              <th class="text-center" scope="col">Return on equity </th>
-              <th class="text-center" scope="col">Dividend yield</th>
-              <th class="text-center" scope="col">Price earnings ratio </th>
+                    <th class="text-center" scope="col">
+          Name
+          <span class="float-right">
+            <i class="fa fa-sort-amount-down"></i>
+          </span>
+        </th>
+        <th class="text-center" scope="col">
+          Code
+          <span class="float-right">
+            <i class="fa fa-sort-amount-down"></i>
+          </span>
+        </th>
+        <th class="text-center" scope="col">
+          Category
+          <span class="float-right">
+            <i class="fa fa-sort-amount-down"></i> 
+          </span>
+        </th>
+        <th class="text-center" scope="col">
+          Total asset turnover
+          <span class="float-right">
+            <i class="fa fa-sort-amount-down"></i> 
+          </span>
+        </th>
+        <th class="text-center" scope="col">
+          Cash ratio
+          <span class="float-right">
+            <i class="fa fa-sort-amount-down"></i>
+          </span>
+        </th>
+        <th class="text-center" scope="col">
+          Debt ratio
+          <span class="float-right">
+            <i class="fa fa-sort-amount-down"></i>
+          </span>
+        </th>
+        <th class="text-center" scope="col">
+          Return on equity
+          <span class="float-right">
+            <i class="fa fa-sort-amount-down"></i>
+          </span>
+        </th>
+        <th class="text-center" scope="col">
+          Dividend yield
+          <span class="float-right">
+            <i class="fas fa-sort-amount-down"></i>
+          </span>
+        </th>
+        <th class="text-center" scope="col">
+          Price earnings ratio
+          <span class="float-right">
+            <i class="fas fa-sort-amount-down"></i>
+          </span>
+        </th>
               <th class="text-center" scope="col"></th>
             </tr>
           </thead>
