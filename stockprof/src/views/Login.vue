@@ -1,6 +1,6 @@
 <template>
     <div class="page-log-in">
-        <section class="h-100 gradient-form" style="background-color: #eee;">
+        <section class="h-100 gradient-form" style="background-color: #fcf5e7;">
             <div class="container py-5 h-100">
                 <div class="row d-flex justify-content-center align-items-center h-100">
                     <div class="col-xl-10">
