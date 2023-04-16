@@ -1,7 +1,9 @@
 <template>
   <div class="page-portfolio-details">
-    <h1 class="title">Sector : {{category}}</h1>
-
+    <h1 class="title">Sector : {{ category }}</h1>
+    <div style="text-align: left;">
+      <button @click="editable = true" class="btn btn-primary mt-4">Edit</button>
+    </div>
     <div
       v-if="outlierFinancialratio && outlierFinancialratio.length > 0 && outlierStocks && outlierStocks.length > 0 && stockTypeOptions && stockTypeOptions.length > 0"
       class="box mt-6 box has-background-white border border-primary border-2 my-5">
@@ -42,11 +44,16 @@
             <td scope="row" v-if="OutlierCapitalGainLoss.length > 0">{{
               OutlierCapitalGainLoss[index].toFixed(2) }}%</td>
             <td scope="row">
-              <div class=" is-small mb-3 mr-3">
+              <div v-if="editable" class="select is-small mb-3 mr-3">
+                <select v-model="stockTypeOptions[index]" @change="showOutlierInput(index)">
+                  <option value="Outperforming">Outpeforming</option>
+                  <option value="Underperforming">Underperforming</option>
+                  <option value="custom">Custom</option>
+                </select>
+              </div>
+              <div v-else class=" is-small mb-3 mr-3">
                 <input :value="stockTypeOptions[index]" disabled>
               </div>
-              <input v-if="showOutlierTextInput[index]" class="input is-small" type="text" placeholder="Stock type"
-                style="width:120px;" v-model="stockTypeOptions[index]" />
             </td>
           </tr>
         </tbody>
@@ -82,7 +89,8 @@
         </div>
       </div>
 
-      <button type="button" @click="OutlierStockProfile()" class="btn btn-primary mt-3">Outlier Stock Profile</button>
+      <button v-if="editable" type="button" @click="OutlierStockProfile()" class="btn btn-primary mt-3">Outlier Stock
+        Profile</button>
     </div>
 
     <div class="columns is-multiline box has-background-white border border-primary border-2 my-6">
@@ -138,7 +146,15 @@
         <div class="field">
           <label class="label">Portfolio Type</label>
           <div class="control">
-            <div class="is-rounded" v-if="this.portfolioTypeOptions.length > 0">
+            <div  v-if="editable" class="select is-rounded">
+              <select v-model="portfolioTypeOptions[index]" @change="showInput(index)">
+                <option value="Aggressive">Aggressive</option>
+                <option value="Average">Average</option>
+                <option value="Defensive">Defensive</option>
+                <option value=Custom>Custom</option>
+              </select>
+            </div>
+            <div  class="is-rounded" v-if="this.portfolioTypeOptions.length > 0 && editable==false">
               <input :value="portfolioTypeOptions[index]" disabled>
 
             </div>
@@ -181,7 +197,7 @@ export default {
       stockTypeOptions: [],
       ClusterCapitalGainLoss: [],
       OutlierCapitalGainLoss: [],
-      // outlierStockProfile: false,
+      editable: false,
       outlierTitle: [],
       saveResult_showModal: false,
       remark: '',
