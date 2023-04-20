@@ -51,9 +51,13 @@
                   <option value="custom">Custom</option>
                 </select>
               </div>
-              <div v-else class=" is-small mb-3 mr-3">
+              <input v-if="showOutlierTextInput[index]" v-model="stockTypeOptions[index]" class="input is-small"
+                type="text" style="width:120px;" placeholder="Stock type">
+              <div v-if="editable == false" class=" is-small mb-3 mr-3">
                 <input :value="stockTypeOptions[index]" disabled>
               </div>
+
+
             </td>
           </tr>
         </tbody>
@@ -146,27 +150,32 @@
         <div class="field">
           <label class="label">Portfolio Type</label>
           <div class="control">
-            <div  v-if="editable" class="select is-rounded">
-              <select v-model="portfolioTypeOptions[index]" @change="showInput(index)">
-                <option value="Aggressive">Aggressive</option>
-                <option value="Average">Average</option>
-                <option value="Defensive">Defensive</option>
-                <option value=Custom>Custom</option>
-              </select>
+            <div v-if="editable">
+              <div class="select is-rounded">
+                <select v-model="portfolioTypeOptions[index]" @change="showInput(index)">
+                  <option value="Aggressive">Aggressive</option>
+                  <option value="Average">Average</option>
+                  <option value="Defensive">Defensive</option>
+                  <option value=Custom>Custom</option>
+                </select>
+              </div>
+              <input v-if="showTextInput[index]" v-model="portfolioTypeOptions[index]" class="input my-4" type="text"
+                placeholder="Portfolio type">
             </div>
-            <div  class="is-rounded" v-if="this.portfolioTypeOptions.length > 0 && editable==false">
+
+            <div class="is-rounded" v-if="this.portfolioTypeOptions.length > 0 && editable == false">
               <input :value="portfolioTypeOptions[index]" disabled>
 
             </div>
           </div>
         </div>
-        <input v-if="showTextInput[index]" v-model="portfolioTypeOptions[index]" class="input my-4" type="text"
-          placeholder="Portfolio type">
       </div>
     </div>
     <div v-if="chartId != ''">
       <stock-chart :show-modal="this.showModal" :ticker="this.chartId" @modal-closed="handleModalClosed"></stock-chart>
     </div>
+
+    <button v-if="editable" @click="updateResult()" class="btn btn-primary mt-4">Update Results</button>
 
   </div>
 </template>
@@ -175,6 +184,7 @@
 import axios from "axios"
 import BoxPlot from '@/components/BoxPlot'
 import StockChart from '@/components/StockChart'
+import { mapGetters } from 'vuex'
 
 export default {
   name: 'PortfolioDetails',
@@ -218,6 +228,30 @@ export default {
     document.title = 'Portfolio' + ' | StockProF'
   },
   methods: {
+    showOutlierInput(index) {
+      console.log(this.stockTypeOptions[index])
+      if (this.stockTypeOptions[index] !== 'Outperforming' && this.stockTypeOptions[index] !== 'Underperforming') {
+        this.showOutlierTextInput[index] = true;
+        if (this.stockTypeOptions[index] == 'custom') {
+          this.stockTypeOptions[index] = ''
+          console.log(this.showOutlierTextInput[index])
+        }
+      }
+      else {
+        this.showOutlierTextInput[index] = false;
+      }
+    },
+    showInput(index) {
+      if (this.portfolioTypeOptions[index] !== 'Aggressive' && this.portfolioTypeOptions[index] !== 'Average' && this.portfolioTypeOptions[index] !== 'Defensive') {
+        this.showTextInput[index] = true;
+        if (this.portfolioTypeOptions[index] == 'Custom') {
+          this.portfolioTypeOptions[index] = ''
+        }
+      }
+      else {
+        this.showTextInput[index] = false;
+      }
+    },
     handleModalClosed() {
       this.chartId = "";
     },
@@ -244,6 +278,14 @@ export default {
               const outlierFinancialratio = response1.data.outlier.map(financial_ratios => financial_ratios.financial_ratios);
               this.outlierFinancialratio = outlierFinancialratio
               this.clusteredStocks = response1.data.portfolio
+              for (let i = 0; i < response1.data.portfolio.length; i++) {
+                const clustered_symbols = response1.data.portfolio[i].map(symbol => symbol.Symbol);
+                this.clusteredStocksSymbols.push(clustered_symbols)
+                this.showTextInput.push(false)
+              }
+              for (let j = 0; j < response1.data.outlier.length; j++) {
+                this.showOutlierTextInput.push(false)
+              }
               this.getBoxPlotData(this.clusteredStocksSymbols, 'portfolio')
               this.getComparison()
               this.OutlierStockProfile()
@@ -328,6 +370,14 @@ export default {
       this.getBoxPlotData(result, 'outlier')
       this.outlierStockProfile = true
     },
+     async updateResult() {
+      await axios.put(`api/history/${this.id}`, {
+        portfolioTypeOptions: this.portfolioTypeOptions,
+        stockTypeOptions: this.stockTypeOptions
+      }).then(response => {
+        console.log(response);
+      });
+    }
   }
 }
 </script>
