@@ -24,12 +24,12 @@
       <div class="columns">
         <div class="column  is-flex ">
           <div class="control">
-            <input class="input" type="text" placeholder="Find the stocks">
+            <input class="input" type="text" v-model="search_value" @input="check_searchValue" placeholder="Find the stocks">
           </div>
           <div>
-            <a class="button is-info">
+            <button class="button is-info" @click="searchStocks()">
               Search
-            </a>
+            </button>
           </div>
         </div>
         <h2 class="subtitle column is-one-third has-text-right">{{ this.total_stocks }} stocks found.</h2>
@@ -147,6 +147,7 @@ export default {
       total_stocks: 0,
       showModal : false,
       chartId:'',
+      search_value: ''
     }
   },
   components: {
@@ -158,6 +159,11 @@ export default {
     document.title = 'Home' + ' | StockProF'
   },
   methods: {
+    check_searchValue(){
+      if (this.search_value==''){
+        this.getStocks()
+      }
+    },
     handleModalClosed() {
       this.chartId = "";
     },
@@ -196,8 +202,6 @@ export default {
               this.financialRatio = financialRatio
               const Category = response1.data.map(Category => Category.Category.split(',')[0].trim());
               Category.forEach(Category => this.options.add(Category));
-              // const symbols = response1.data.result.map(symbol => symbol.Symbol);
-              // this.selectedStocks = symbols
               this.total_stocks = response1.data.length
             })
         })
@@ -236,6 +240,25 @@ export default {
         }
       })
     },
+    async searchStocks() {
+      this.value = ''
+      await axios.get(`api/stocks/?search_by=Name&search=${this.search_value}`)
+        .then(response => {
+          return axios.get(`api/stocks/?disable_pagination=true&search_by=Name&search=${this.search_value}`)
+          .then(response1 =>{
+            console.log("response",response.data.results)
+            this.stocks= response.data.results
+            const financialRatio = response.data.results.map(financial_ratios => financial_ratios.financial_ratios);
+            this.financialRatio = financialRatio
+            console.log("this.stocks", this.stocks)
+            this.total_stocks = response1.data.length
+          })
+        })
+        .catch(error => {
+          console.log(error);
+        });
+    }
+
 
   }
 }
