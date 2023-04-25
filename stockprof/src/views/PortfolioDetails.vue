@@ -184,7 +184,7 @@
 import axios from "axios"
 import BoxPlot from '@/components/BoxPlot'
 import StockChart from '@/components/StockChart'
-import { mapGetters } from 'vuex'
+import { toast } from 'bulma-toast'
 
 export default {
   name: 'PortfolioDetails',
@@ -375,6 +375,14 @@ export default {
         portfolioTypeOptions: this.portfolioTypeOptions,
         stockTypeOptions: this.stockTypeOptions
       }).then(response => {
+        toast({
+          message: 'Record updated',
+          type: 'is-success',
+          dismissible: true,
+          pauseOnHover: true,
+          duration: 4000,
+          position: 'bottom-right',
+        })
         console.log(response);
       });
     }
