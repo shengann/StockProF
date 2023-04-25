@@ -1,6 +1,9 @@
 <template>
     <div class="page-portfolio">
         <h1 class="title">Sector : {{ category }}</h1>
+        <div style="text-align: left;">
+          <button @click="explanation_showModal = true" class="btn btn-primary mt-4">Result Generated Explanation</button>
+        </div>
        
         <div v-if="outlierStocks.length > 1" class="box mt-6 box has-background-white border border-primary border-2 my-5">
             <h2 class="title">Outlier Stocks</h2>
