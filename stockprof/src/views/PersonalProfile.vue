@@ -36,7 +36,7 @@
                             <label>Do you want to delete the selected portfolio.This procees cannot be undone</label>
                         </section>
                         <footer class="modal-card-foot">
-                            <button class="button is-danger" @click="deleteHistory(this.deleteId); showModal = false">Save Results</button>
+                            <button class="button is-danger" @click="deleteHistory(this.deleteId); showModal = false">Delete Selected Results</button>
                             <button class="button" @click="showModal = false">Cancel</button>
                         </footer>
                     </div>
