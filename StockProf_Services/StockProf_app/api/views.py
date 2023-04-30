@@ -40,7 +40,6 @@ class filterFinancialRatio(APIView):
     def get(self, request, *args, **kwargs):
         Category = self.kwargs['Category']
         stock_object = MY_stock.objects.filter(Category=Category)
-        print("stock_object", stock_object)
         fianacial_ratio = MY_financialRatios.objects.filter(ticker__in=stock_object)
         serializer = MY_finacialRatiosSerializer(fianacial_ratio, many=True)
         return Response(serializer.data)    
@@ -101,13 +100,15 @@ class getStockPriceData(views.APIView):
         return Response(json_data)
         
 
-class getStockProfData(views.APIView):
+class getStockProFData(views.APIView):
     def post(self, request, format=None):
         ticker_list = request.data.get('ticker_list')
         stockTicker = MY_stock.objects.filter(Symbol__in=ticker_list)
         data = MY_financialRatios.objects.filter(ticker__in=stockTicker)
         data_frame = pd.DataFrame((MY_finacialRatiosSerializer(data, many=True)).data)
+        print("Data Frame For the financial data for a selected sector :\n", data_frame)
         pd.set_option('display.max_rows', None)
+        print("\n")
         data_frame=data_frame.drop(columns=['id'])
         
         scaler = MinMaxScaler()
@@ -116,12 +117,17 @@ class getStockProfData(views.APIView):
         df_norm.set_axis(columns, axis=1, inplace=True)
         data_frame= data_frame['ticker']
         data_frame = pd.concat([df_norm, data_frame], axis=1)
+        print("Data Frame after Min-Max Normalization :\n", data_frame)
         pd.set_option('display.max_rows', None)
+        print("\n")
         
         lof = LocalOutlierFactor()
         lof.fit(data_frame[columns])
         lof_scores = -lof.negative_outlier_factor_
         data_frame['lof_score'] = lof_scores
+        print("Data Frame after LOF is performed :\n", data_frame)
+        pd.set_option('display.max_rows', None)
+        print("\n")
         temp_outlierList = []
         for index, row in data_frame.iterrows():
             if row['lof_score'] > 1.5:
@@ -133,10 +139,11 @@ class getStockProfData(views.APIView):
             outlierList.append(serializer.data[0])
         data_frame.drop(data_frame[data_frame["lof_score"] > 1.5].index, inplace=True)
         data_frame = data_frame.reset_index(drop=True)
+        print("Data Frame after the outliers are removed :\n", data_frame)
         pd.set_option('display.max_rows', None)
+        print("\n")
 
         data_frame_clustering = data_frame.drop(columns=['lof_score','ticker'])
-        print("data_frame_clustering\n", data_frame_clustering)
 
         def special_clustering_func(data_frame_clustering, k):
             em_clustering = GaussianMixture(n_components=k, random_state=0)
@@ -145,21 +152,23 @@ class getStockProfData(views.APIView):
 
         optimalk = OptimalK(clusterer=special_clustering_func)
 
-        n_clusters = optimalk(data_frame_clustering, cluster_array=range(1, 9))
-        print("n_clusters", n_clusters)
+        n_clusters = optimalk(data_frame_clustering, cluster_array=range(1, 11))
+        print("Optimal number of cluster from Gap Statistic Method : ", n_clusters)
+        print("\n")
         em_clustering = GaussianMixture(n_components=n_clusters)
         em_clustering.fit(data_frame_clustering)
         labels = em_clustering.predict(data_frame_clustering)
         data_frame['label'] = labels
-        data_frame = data_frame.drop(columns=['assetturnover', 'quickratio', 'debttoequity', 'roe', 'dividendyield', 'pricetoearnings', 'lof_score'])
+        print("Data Frame after EM Clustering is performed :\n", data_frame)
         pd.set_option('display.max_rows', None)
+        print("\n")
+        data_frame = data_frame.drop(columns=['assetturnover', 'quickratio', 'debttoequity', 'roe', 'dividendyield', 'pricetoearnings', 'lof_score'])
         groups = data_frame.groupby('label')
         lists = []
 
         for name, group in groups:
             lists.append(group['ticker'].tolist())
 
-        # Print the list of lists
         clusteringList=[]
         for ticker_list in lists:
             clusteredStocks = MY_stock.objects.filter(Symbol__in=ticker_list) 
@@ -348,7 +357,6 @@ class MY_getComparison (views.APIView):
                 percent_change = (price_2 - price_1) / price_1 * 100.0
                 oulier_percent_changes.append(percent_change)
                 
-            print('capital_gain_loss_list', capital_gain_loss_list)
             data = {
                 'Portfolio': capital_gain_loss_list,
                 'Outlier': oulier_percent_changes
@@ -370,16 +378,12 @@ class getBoxPlotData(views.APIView):
         df_norm.set_axis(columns, axis=1, inplace=True)
         Category_data = Category_data['ticker']
         Category_data = pd.concat([df_norm, Category_data], axis=1)
-        pd.set_option('display.max_rows', None)
-        print(Category_data)
         boxPlot_df = pd.DataFrame(columns=['col1'])
         for index, value in enumerate(portfolio_list):
-            print(index)
             ticker_list = value
             stockTicker = MY_stock.objects.filter(Symbol__in=ticker_list)
             data = MY_financialRatios.objects.filter(ticker__in=stockTicker)
             Cluster_data = pd.DataFrame((MY_finacialRatiosSerializer(data, many=True)).data)
-            pd.set_option('display.max_rows', None)
             Cluster_data= Cluster_data.drop(columns=columns)
             data_frame = Cluster_data.join(Category_data, rsuffix='_other').drop(columns=['ticker_other','ticker','id'])
             
@@ -401,7 +405,6 @@ class getBoxPlotData(views.APIView):
         boxPlot_df = boxPlot_df.rename(columns={"25%": "q1", "50%": "q2","75%":"q3"})
         boxPlot_df['iqr'] = boxPlot_df['q3'] - boxPlot_df['q1']
         boxPlot_df = boxPlot_df.astype(str)
-        # boxPlot_df =  boxPlot_df.sort_values(by=['name'])
         boxPlot_list = boxPlot_df.values.tolist()
         boxPlot_list = [{"name": row[5], "min": row[0], "max":row[4],"q1": row[1], "q2": row[2], "q3": row[3], "iqr": row[6]} for row in boxPlot_list]
               
