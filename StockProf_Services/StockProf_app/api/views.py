@@ -122,6 +122,7 @@ class getStockProFData(views.APIView):
         print("\n")
         
         lof = LocalOutlierFactor()
+        lof =lof.set_params(metric='euclidean')
         lof.fit(data_frame[columns])
         lof_scores = -lof.negative_outlier_factor_
         data_frame['lof_score'] = lof_scores
@@ -220,7 +221,7 @@ class MY_getFinancialRatiosData(views.APIView):
             "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.75 Safari/537.36",
             "X-Requested-With": "XMLHttpRequest"
         }
-        form_data = {'getquote': '1', 'board': '1', 'sector': '48'}
+        form_data = {'getquote': '1', 'board': '1', 'sector': '44'}
         server = requests.post(url, data=form_data, headers=header)
         output = server.text
         filtered_data = pd.read_html(output)
@@ -253,24 +254,26 @@ class MY_getFinancialRatiosData(views.APIView):
             result = result.drop(['data'], axis=1)
 
             result['StringColumn'] = result['StringColumn'].str.replace(' ', '')
-            result = result.loc[result['StringColumn'].isin(['ERatio(TTM)', 'TotalAssetTurnover', 'QuickRatio', 'ReturnonEquity', 'TotalDebttoTotalEquity'])]
+            result = result.loc[result['StringColumn'].isin(['ERatio(TTM)', 'TotalAssetTurnover', 'CashRatio', 'ReturnonEquity', 'TotalDebttoTotalEquity'])]
             result = result.append(dividendyield, ignore_index=True)
 
             result = result.set_index('StringColumn').T
             result = result.rename_axis(None, axis=1).reset_index(drop=True)
             result['DY'] = result['DY'].str.replace('%', '')
-            result[['ERatio(TTM)', 'TotalAssetTurnover', 'QuickRatio', 'ReturnonEquity', 'TotalDebttoTotalEquity', 'DY']] = result[['ERatio(TTM)', 'TotalAssetTurnover', 'QuickRatio', 'ReturnonEquity', 'TotalDebttoTotalEquity', 'DY']].replace('-', '0')
+            result[['ERatio(TTM)', 'TotalAssetTurnover', 'CashRatio', 'ReturnonEquity', 'TotalDebttoTotalEquity', 'DY']] = result[[
+                'ERatio(TTM)', 'TotalAssetTurnover', 'CashRatio', 'ReturnonEquity', 'TotalDebttoTotalEquity', 'DY']].replace('-', '0')
             result['Code'] = Symbol
             
             for i, row in result.iterrows():
                 stockTicker = MY_stock.objects.get(Symbol=Symbol)
-                MY_financialRatios.objects.create(ticker=stockTicker, assetturnover=row['TotalAssetTurnover'], quickratio=row['QuickRatio'],
+                MY_financialRatios.objects.create(ticker=stockTicker, assetturnover=row['TotalAssetTurnover'], quickratio=row['CashRatio'],
                                                   roe=row['ReturnonEquity'], pricetoearnings=row['ERatio(TTM)'], dividendyield=row['DY'], debttoequity=row['TotalDebttoTotalEquity'])
         return None
 
 class MY_getStockPrice (views.APIView):
     def post(self, request, *args, **kwargs):
-        code_list = ["5161"]
+        code_list = ["0002", "0222", "7090", "7148", "0201", "7178", "5878", "5225",
+                     "0101", "7153", "7081", "7106", "5168", "7113", "7191", "7803", "0163"]
 
 
         for Symbol in code_list:
@@ -372,12 +375,19 @@ class getBoxPlotData(views.APIView):
         fianacial_ratio = MY_financialRatios.objects.filter(ticker__in=stocks)
         serializer = MY_finacialRatiosSerializer(fianacial_ratio, many=True)
         Category_data= pd.DataFrame(serializer.data)
+        print("Summary Descriptive")
+        print("Data Frame of the finacial data for a selected sector :\n", Category_data)
+        pd.set_option('display.max_rows', None)
+        print("\n")
         scaler = MinMaxScaler()
         columns = ['assetturnover', 'quickratio', 'debttoequity','roe', 'dividendyield', 'pricetoearnings']
         df_norm = pd.DataFrame(scaler.fit_transform(Category_data[columns]))
         df_norm.set_axis(columns, axis=1, inplace=True)
         Category_data = Category_data['ticker']
         Category_data = pd.concat([df_norm, Category_data], axis=1)
+        print("Data Frame of the finacial data for a selected sector after normalization:\n", Category_data)
+        pd.set_option('display.max_rows', None)
+        print("\n")
         boxPlot_df = pd.DataFrame(columns=['col1'])
         for index, value in enumerate(portfolio_list):
             ticker_list = value
@@ -393,6 +403,10 @@ class getBoxPlotData(views.APIView):
 
             data_frame = data_frame.rename(columns=new_columns)
             quartiles = data_frame.describe(percentiles=[.25, .5, .75]).loc[['min', '25%', '50%', '75%', 'max']]
+            print("Portfolio",index+1)
+            print("Data Frame of summary descriptive for the porfolios:\n", quartiles)
+            pd.set_option('display.max_rows', None)
+            print("\n")
             boxPlot_df = pd.concat([boxPlot_df, quartiles], axis=1)
 
         boxPlot_df = boxPlot_df.drop(columns=['col1'])
@@ -405,6 +419,9 @@ class getBoxPlotData(views.APIView):
         boxPlot_df = boxPlot_df.rename(columns={"25%": "q1", "50%": "q2","75%":"q3"})
         boxPlot_df['iqr'] = boxPlot_df['q3'] - boxPlot_df['q1']
         boxPlot_df = boxPlot_df.astype(str)
+        print("Data Frame of the finacial data for a selected sector after normalization:\n", boxPlot_df)
+        pd.set_option('display.max_rows', None)
+        print("\n")
         boxPlot_list = boxPlot_df.values.tolist()
         boxPlot_list = [{"name": row[5], "min": row[0], "max":row[4],"q1": row[1], "q2": row[2], "q3": row[3], "iqr": row[6]} for row in boxPlot_list]
               
