@@ -7,7 +7,7 @@
         <div class="dropdown">
           <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown"
             aria-expanded="false">
-            Category : {{ value }}
+            Sector : {{ value }}
           </button>
           <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1" role="menu">
             <li v-for="option in options" :key="option">
@@ -211,7 +211,6 @@ export default {
         )
     },
     async filterStock() {
-      this.currentPage = 1
       await axios
         .get(`api/stocks/?page=${this.currentPage}&search=${this.value}`)
         .then(response => {
