@@ -40,57 +40,57 @@
             <tr>
                     <th class="text-center" scope="col">
           Name
-          <span class="float-right">
+          <!-- <span class="float-right">
             <i class="fa fa-sort-amount-down"></i>
-          </span>
+          </span> -->
         </th>
         <th class="text-center" scope="col">
           Code
-          <span class="float-right">
+          <!-- <span class="float-right">
             <i class="fa fa-sort-amount-down"></i>
-          </span>
+          </span> -->
         </th>
         <th class="text-center" scope="col">
           Category
-          <span class="float-right">
+          <!-- <span class="float-right">
             <i class="fa fa-sort-amount-down"></i> 
-          </span>
+          </span> -->
         </th>
         <th class="text-center" scope="col">
           Total asset turnover
-          <span class="float-right">
+          <!-- <span class="float-right">
             <i class="fa fa-sort-amount-down"></i> 
-          </span>
+          </span> -->
         </th>
         <th class="text-center" scope="col">
           Cash ratio
-          <span class="float-right">
+          <!-- <span class="float-right">
             <i class="fa fa-sort-amount-down"></i>
-          </span>
+          </span> -->
         </th>
         <th class="text-center" scope="col">
           Debt ratio
-          <span class="float-right">
+          <!-- <span class="float-right">
             <i class="fa fa-sort-amount-down"></i>
-          </span>
+          </span> -->
         </th>
         <th class="text-center" scope="col">
           Return on equity
-          <span class="float-right">
+          <!-- <span class="float-right">
             <i class="fa fa-sort-amount-down"></i>
-          </span>
+          </span> -->
         </th>
         <th class="text-center" scope="col">
           Dividend yield
-          <span class="float-right">
+          <!-- <span class="float-right">
             <i class="fas fa-sort-amount-down"></i>
-          </span>
+          </span> -->
         </th>
         <th class="text-center" scope="col">
           Price earnings ratio
-          <span class="float-right">
+          <!-- <span class="float-right">
             <i class="fas fa-sort-amount-down"></i>
-          </span>
+          </span> -->
         </th>
               <th class="text-center" scope="col"></th>
             </tr>
