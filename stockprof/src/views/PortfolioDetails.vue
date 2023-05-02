@@ -281,7 +281,12 @@ export default {
               for (let i = 0; i < response1.data.portfolio.length; i++) {
                 const clustered_symbols = response1.data.portfolio[i].map(symbol => symbol.Symbol);
                 this.clusteredStocksSymbols.push(clustered_symbols)
-                this.showTextInput.push(false)
+                if (response.data[0].portfolioTypeOptions[i] !== 'Aggressive' && response.data[0].portfolioTypeOptions[i] !== 'Average'  && response.data[0].portfolioTypeOptions[i] !== 'Defensive') {
+                  this.showTextInput[i] = true
+                }
+                else {
+                  this.showTextInput[i] = false
+                }
               }
               for (let j = 0; j < response1.data.outlier.length; j++) {
                 if (response.data[0].stockTypeOptions[j] !== 'Outperforming'  && response.data[0].stockTypeOptions[j] !== 'Underperforming'){
