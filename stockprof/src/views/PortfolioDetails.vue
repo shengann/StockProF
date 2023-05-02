@@ -44,21 +44,23 @@
             <td scope="row" v-if="OutlierCapitalGainLoss.length > 0">{{
               OutlierCapitalGainLoss[index].toFixed(2) }}%</td>
             <td scope="row">
-              <div v-if="editable" class="select is-small mb-3 mr-3">
-                <select v-model="stockTypeOptions[index]" @change="showOutlierInput(index)">
-                  <option value="Outperforming">Outpeforming</option>
-                  <option value="Underperforming">Underperforming</option>
-                  <option value="custom">Custom</option>
-                </select>
-              </div>
-              <input v-if="showOutlierTextInput[index]" v-model="stockTypeOptions[index]" class="input is-small"
-                type="text" style="width:120px;" placeholder="Stock type">
-              <div v-if="editable == false" class=" is-small mb-3 mr-3">
-                <input :value="stockTypeOptions[index]" disabled>
-              </div>
+                <div v-if="editable" >
+                  <div class="select is-small mb-3 mr-3">
+                  <select v-model="stockTypeOptions[index]" @change="showOutlierInput(index)">
+                    <option value="Outperforming">Outpeforming</option>
+                    <option value="Underperforming">Underperforming</option>
+                    <option value="custom">Custom</option>
+                  </select>
+                  </div>
+                  <input v-if="showOutlierTextInput[index]" v-model="stockTypeOptions[index]" class="input is-small"
+                    type="text" style="width:120px;" placeholder="Stock type">
+                </div>
+                <div v-if="editable == false" class=" is-small mb-3 mr-3">
+                  <input :value="stockTypeOptions[index]" disabled>
+                </div>
 
 
-            </td>
+              </td>
           </tr>
         </tbody>
       </table>
@@ -269,8 +271,6 @@ export default {
             outlierStocksSymbols: response.data[0].outlierStocksSymbols
           })
             .then(response1 => {
-              this.clusteredStocksSymbols = response.data[0].clusteredStocksSymbols
-
               this.outlierStocksSymbols = response.data[0].outlierStocksSymbols
               this.portfolioTypeOptions = response.data[0].portfolioTypeOptions
               this.stockTypeOptions = response.data[0].stockTypeOptions
@@ -281,10 +281,20 @@ export default {
               for (let i = 0; i < response1.data.portfolio.length; i++) {
                 const clustered_symbols = response1.data.portfolio[i].map(symbol => symbol.Symbol);
                 this.clusteredStocksSymbols.push(clustered_symbols)
-                this.showTextInput.push(false)
+                if (response.data[0].portfolioTypeOptions[i] !== 'Aggressive' && response.data[0].portfolioTypeOptions[i] !== 'Average'  && response.data[0].portfolioTypeOptions[i] !== 'Defensive') {
+                  this.showTextInput[i] = true
+                }
+                else {
+                  this.showTextInput[i] = false
+                }
               }
               for (let j = 0; j < response1.data.outlier.length; j++) {
-                this.showOutlierTextInput.push(false)
+                if (response.data[0].stockTypeOptions[j] !== 'Outperforming'  && response.data[0].stockTypeOptions[j] !== 'Underperforming'){
+                  this.showOutlierTextInput[j]= true
+                }
+                else{
+                  this.showOutlierTextInput[j] = false
+                }
               }
               this.getBoxPlotData(this.clusteredStocksSymbols, 'portfolio')
               this.getComparison()
@@ -318,6 +328,7 @@ export default {
         )
     },
     async getBoxPlotData(data, type) {
+      console.log("data", data)
 
       await axios
         .post('api/portfolio/box-plot-data', {

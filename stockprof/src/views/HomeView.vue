@@ -7,7 +7,7 @@
         <div class="dropdown">
           <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown"
             aria-expanded="false">
-            Category : {{ value }}
+            Sector : {{ value }}
           </button>
           <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1" role="menu">
             <li v-for="option in options" :key="option">
@@ -40,57 +40,57 @@
             <tr>
                     <th class="text-center" scope="col">
           Name
-          <span class="float-right">
+          <!-- <span class="float-right">
             <i class="fa fa-sort-amount-down"></i>
-          </span>
+          </span> -->
         </th>
         <th class="text-center" scope="col">
           Code
-          <span class="float-right">
+          <!-- <span class="float-right">
             <i class="fa fa-sort-amount-down"></i>
-          </span>
+          </span> -->
         </th>
         <th class="text-center" scope="col">
           Category
-          <span class="float-right">
+          <!-- <span class="float-right">
             <i class="fa fa-sort-amount-down"></i> 
-          </span>
+          </span> -->
         </th>
         <th class="text-center" scope="col">
           Total asset turnover
-          <span class="float-right">
+          <!-- <span class="float-right">
             <i class="fa fa-sort-amount-down"></i> 
-          </span>
+          </span> -->
         </th>
         <th class="text-center" scope="col">
           Cash ratio
-          <span class="float-right">
+          <!-- <span class="float-right">
             <i class="fa fa-sort-amount-down"></i>
-          </span>
+          </span> -->
         </th>
         <th class="text-center" scope="col">
           Debt ratio
-          <span class="float-right">
+          <!-- <span class="float-right">
             <i class="fa fa-sort-amount-down"></i>
-          </span>
+          </span> -->
         </th>
         <th class="text-center" scope="col">
           Return on equity
-          <span class="float-right">
+          <!-- <span class="float-right">
             <i class="fa fa-sort-amount-down"></i>
-          </span>
+          </span> -->
         </th>
         <th class="text-center" scope="col">
           Dividend yield
-          <span class="float-right">
+          <!-- <span class="float-right">
             <i class="fas fa-sort-amount-down"></i>
-          </span>
+          </span> -->
         </th>
         <th class="text-center" scope="col">
           Price earnings ratio
-          <span class="float-right">
+          <!-- <span class="float-right">
             <i class="fas fa-sort-amount-down"></i>
-          </span>
+          </span> -->
         </th>
               <th class="text-center" scope="col"></th>
             </tr>
@@ -211,7 +211,6 @@ export default {
         )
     },
     async filterStock() {
-      this.currentPage = 1
       await axios
         .get(`api/stocks/?page=${this.currentPage}&search=${this.value}`)
         .then(response => {
