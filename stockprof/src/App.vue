@@ -4,7 +4,7 @@
       <div id="navbarBasicExample" class="navbar-menu">
         <div class="navbar-start">
           <router-link class="navbar-item is-dark" to="/">Home</router-link>
-          <router-link class="navbar-item is-dark" to="/about">About</router-link>
+          <!-- <router-link class="navbar-item is-dark" to="/about">About</router-link> -->
         </div>
       </div>
 
